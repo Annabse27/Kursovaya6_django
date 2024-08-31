@@ -1,0 +1,31 @@
+   # Python
+   __pycache__/
+   *.py[cod]
+   *.pyo
+   *.pyd
+   *.db
+   *.sqlite3
+
+   # Django
+   *.log
+   local_settings.py
+   db.sqlite3
+   media/
+   staticfiles/
+
+   # Virtualenv
+   .venv/
+   django_kursovaya/.env/
+   .env
+
+   # Poetry
+   poetry.lock
+   .mypy_cache/
+   .pytest_cache/
+   .tox/
+
+   # macOS
+   .DS_Store
+
+   # Windows
+   Thumbs.db
