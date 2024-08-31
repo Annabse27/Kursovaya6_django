@@ -1,31 +1,95 @@
-   # Python
-   __pycache__/
-   *.py[cod]
-   *.pyo
-   *.pyd
-   *.db
-   *.sqlite3
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-   # Django
-   *.log
-   local_settings.py
-   db.sqlite3
-   media/
-   staticfiles/
+# Django specific
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.pdb
+db.sqlite3
+*.env
 
-   # Virtualenv
-   .venv/
-   django_kursovaya/.env/
-   .env
+# If you are using SQLite database files
+*.db
 
-   # Poetry
-   poetry.lock
-   .mypy_cache/
-   .pytest_cache/
-   .tox/
 
-   # macOS
-   .DS_Store
+# Django migrations
+**/migrations/
+**/migrations/*.pyc
+**/migrations/*.pyo
+**/migrations/*.pyd
+**/migrations/*.log
 
-   # Windows
-   Thumbs.db
+# Static and media files
+/static/
+media/
+staticfiles/
+
+# Backup files
+*.bak
+*.swp
+*.swo
+*.tmp
+*.temp
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Distribution / packaging
+.Python
+*.egg-info/
+.installed.cfg
+*.egg
+*.whl
+
+# Env files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env*.local
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# dotenv
+.env.*.local
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox
+.nox
+.cache
+
+# pytest
+.pytest_cache/
+
+# Unit test / coverage reports
+coverage.*
+nosetests.xml
+xunit.xml
+*.cover
+.hypothesis/
