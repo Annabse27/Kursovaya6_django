@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from core import views as core_views  # Импорт представления home
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,7 +26,8 @@ urlpatterns = [
     path('mailings/', include('mailings.urls')),
     path('blog/', include('blog.urls')),
     path('api/', include('mailings.urls')),  # Подключаем API
-
+    path('accounts/', include('allauth.urls')),  # Allauth URL
+    path('', core_views.home, name='home'),  # Маршрут для главной страницы
 ]
 
 if settings.DEBUG:
