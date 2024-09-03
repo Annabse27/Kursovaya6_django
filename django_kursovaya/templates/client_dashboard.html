@@ -1,0 +1,26 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Dashboard</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Welcome to Your Dashboard, {{ user.username }}</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="{% url 'mailing-list' %}">View Your Mailings</a></li>
+            <li><a href="{% url 'profile' %}">Edit Profile</a></li>
+            <li><a href="{% url 'account_logout' %}">Logout</a></li>
+        </ul>
+    </nav>
+    <footer>
+        <p>&copy; 2024 Your Company. All rights reserved.</p>
+    </footer>
+</body>
+</html>

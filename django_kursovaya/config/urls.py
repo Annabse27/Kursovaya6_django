@@ -19,6 +19,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from core import views as core_views  # Импорт представления home
+from core.views import client_dashboard, manager_dashboard, admin_dashboard, profile
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,6 +30,10 @@ urlpatterns = [
     path('api/', include('mailings.urls')),  # Подключаем API
     path('accounts/', include('allauth.urls')),  # Allauth URL
     path('', core_views.home, name='home'),  # Маршрут для главной страницы
+    path('manager/', manager_dashboard, name='manager_dashboard'),
+    path('client_dashboard/', client_dashboard, name='client_dashboard'),
+    path('admin_dashboard/', admin_dashboard, name='admin_dashboard'),
+    path('profile/', profile, name='profile'),
 ]
 
 if settings.DEBUG:

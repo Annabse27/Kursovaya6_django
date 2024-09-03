@@ -1,0 +1,18 @@
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>Manager Dashboard</title>
+   </head>
+   <body>
+       <h1>Welcome, {{ user.username }}</h1>
+       <p>This is your dashboard where you can manage mailings and view reports.</p>
+       <ul>
+           <li><a href="{% url 'mailing-list' %}">View Mailings</a></li>
+           <li><a href="{% url 'client-list-create' %}">View Clients</a></li>
+           <li><a href="{% url 'message-list-create' %}">View Messages</a></li>
+           <li><a href="{% url 'report-list' %}">View Reports</a></li>
+       </ul>
+   </body>
+   </html>
