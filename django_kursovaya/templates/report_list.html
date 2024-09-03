@@ -1,0 +1,26 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Отчеты по рассылкам</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Название рассылки</th>
+        <th>Дата попытки</th>
+        <th>Успешно</th>
+        <th>Ответ сервера</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for attempt in attempts %}
+      <tr>
+        <td>{{ attempt.mailing.name }}</td>
+        <td>{{ attempt.attempted_at }}</td>
+        <td>{{ attempt.success }}</td>
+        <td>{{ attempt.server_response }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a href="{% url 'mailing-list' %}">Назад к списку рассылок</a>
+{% endblock %}
