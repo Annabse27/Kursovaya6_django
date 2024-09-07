@@ -30,6 +30,14 @@ class Mailing(models.Model):
     Это основная модель, представляющая рассылку.
     Она связывает клиентов и сообщения, а также содержит информацию о расписании.
     """
+    PERIODICITY_CHOICES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        # Можно добавить другие опции
+    ]
+
+
     STATUS_CHOICES = [
         ('created', 'Создана'),
         ('started', 'Запущена'),
@@ -38,7 +46,7 @@ class Mailing(models.Model):
 
     name = models.CharField(max_length=255, verbose_name="Название рассылки")
     start_time = models.DateTimeField(verbose_name="Дата и время начала")
-    periodicity = models.CharField(max_length=50, verbose_name="Периодичность")
+    periodicity = models.CharField(max_length=50, choices=PERIODICITY_CHOICES, verbose_name="Периодичность")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created', verbose_name="Статус")
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name="mailings", verbose_name="Сообщение")
     clients = models.ManyToManyField(Client, related_name="mailings", verbose_name="Клиенты")
