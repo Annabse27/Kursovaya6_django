@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список статей</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Список статей блога</h1>
+
+        <!-- Список статей -->
+        <ul class="list-group">
+            {% for post in posts %}
+                <li class="list-group-item">
+                    <a href="{% url 'blog_detail' post.id %}">{{ post.title }}</a> - {{ post.published_date }}
+                </li>
+            {% empty %}
+                <li class="list-group-item">Пока нет статей.</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Кнопка возврата на главную страницу -->
+        <a href="{% url 'home' %}" class="btn btn-secondary mt-4">На главную</a>
+    </div>
+</body>
+</html>

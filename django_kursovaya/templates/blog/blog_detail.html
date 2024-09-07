@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>{{ post.title }}</h1>
+        <p><strong>Опубликовано:</strong> {{ post.published_date }}</p>
+        <p>{{ post.content }}</p>
+        <p><strong>Количество просмотров:</strong> {{ post.views }}</p>
+
+        <!-- Если у статьи есть изображение, оно будет отображено -->
+        {% if post.image %}
+            <img src="{{ post.image.url }}" alt="Изображение статьи" class="img-fluid">
+        {% endif %}
+
+        <!-- Кнопка возврата к списку статей -->
+        <a href="{% url 'blog_list' %}" class="btn btn-secondary mt-4">Назад к статьям</a>
+    </div>
+</body>
+</html>

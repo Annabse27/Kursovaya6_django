@@ -34,6 +34,7 @@ urlpatterns = [
     path('client_dashboard/', client_dashboard, name='client_dashboard'),
     path('admin_dashboard/', admin_dashboard, name='admin_dashboard'),
     path('profile/', profile, name='profile'),
+    path('blog/', include('blog.urls')),
 ]
 
 if settings.DEBUG:

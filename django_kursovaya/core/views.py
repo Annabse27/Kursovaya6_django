@@ -6,6 +6,8 @@ from django.http import HttpResponseForbidden
 from mailings.models import Mailing, Attempt
 from mailings.forms import MailingForm
 import logging
+from blog.models import BlogPost
+
 
 
 # Представления для домашней страницы
@@ -85,3 +87,8 @@ def manager_dashboard(request):
 def client_dashboard(request):
     return render(request, 'client_dashboard.html')
 
+
+#Логика для случайного выбора статей на главной странице
+def home(request):
+    random_posts = BlogPost.objects.order_by('?')[:3]
+    return render(request, 'home.html', {'random_posts': random_posts})
