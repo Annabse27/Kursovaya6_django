@@ -5,21 +5,35 @@ from django.contrib.auth.decorators import login_required, user_passes_test, per
 from mailings.models import Mailing, Attempt, Client
 from mailings.forms import MailingForm
 from blog.models import BlogPost
+import logging
+from django.core.cache import cache
 
+
+logger = logging.getLogger(__name__)
 
 
 # Представления для домашней страницы
 def home(request):
-    print("BASE_DIR:", settings.BASE_DIR)
-    print("Template DIRS:", settings.TEMPLATES[0]['DIRS'])
-    print("Looking for template at:", os.path.join(settings.BASE_DIR, 'templates', 'home.html'))
+    # Проверка кэша для общего количества рассылок
+    total_mailings = cache.get('total_mailings')
+    if total_mailings:
+        logger.info("Данные получены из кэша")
+    else:
+        logger.info("Данные загружены из базы и записаны в кэш")
+        total_mailings = Mailing.objects.count()
+        cache.set('total_mailings', total_mailings, timeout=60 * 15)  # Заменяем CACHE_TTL на конкретное значение для теста
 
-    # Получаем статистику для рассылок и клиентов
-    total_mailings = Mailing.objects.count()  # Количество рассылок всего
-    active_mailings = Mailing.objects.filter(status='started').count()  # Количество активных рассылок
-    unique_clients = Client.objects.distinct().count()  # Количество уникальных клиентов
+    # Остальная логика (получение активных рассылок и клиентов)
+    active_mailings = Mailing.objects.filter(status='started').count()
+    unique_clients = Client.objects.distinct().count()
 
     # Получаем три случайные статьи из блога
+    random_posts = cache.get('random_posts')
+    if random_posts:
+        logger.info("Статьи блога получены из кэша")
+    else:
+        logger.info("Статьи блога загружены из базы и записаны в кэш")
+
     random_posts = BlogPost.objects.order_by('?')[:3]
 
     # Передаем данные в контекст шаблона
@@ -31,8 +45,6 @@ def home(request):
     }
 
     return render(request, 'home.html', context)
-
-
 
 
 
