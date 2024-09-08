@@ -19,23 +19,33 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from core import views as core_views  # Импорт представления home
-from core.views import client_dashboard, manager_dashboard, admin_dashboard, profile
+from core.views import (client_dashboard, manager_dashboard,
+                        admin_dashboard, profile, mailing_list,
+                        active_mailings, client_list)
 
+
+from django.urls import path
+from core import views as core_views  # Импорт представления home
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
-    path('mailings/', include('mailings.urls')),
-    path('blog/', include('blog.urls')),
-    path('api/', include('mailings.urls')),  # Подключаем API
-    path('accounts/', include('allauth.urls')),  # Allauth URL
-    path('', core_views.home, name='home'),  # Маршрут для главной страницы
-    path('manager/', manager_dashboard, name='manager_dashboard'),
-    path('client_dashboard/', client_dashboard, name='client_dashboard'),
-    path('admin_dashboard/', admin_dashboard, name='admin_dashboard'),
-    path('profile/', profile, name='profile'),
-    path('blog/', include('blog.urls')),
+    path('mailings/', core_views.mailing_list, name='mailing-list'),  # Список всех рассылок
+    path('mailings/active/', core_views.active_mailings, name='active-mailings'),  # Активные рассылки
+    path('clients/', core_views.client_list, name='client-list'),  # Список клиентов
+    path('blog/', include('blog.urls')),  # Подключение блога
+    path('accounts/', include('allauth.urls')),  # Авторизация через allauth
+    path('', core_views.home, name='home'),  # Главная страница
+    path('manager/', core_views.manager_dashboard, name='manager_dashboard'),
+    path('client_dashboard/', core_views.client_dashboard, name='client_dashboard'),
+    path('admin_dashboard/', core_views.admin_dashboard, name='admin_dashboard'),
+    path('profile/', core_views.profile, name='profile'),
+    path('mailings/create/', core_views.create_mailing, name='mailing-create'),  # Создание рассылки
+    path('mailings/<int:mailing_id>/edit/', core_views.edit_mailing, name='mailing-edit'),  # Редактирование рассылки
+    path('mailings/<int:mailing_id>/delete/', core_views.delete_mailing, name='mailing-delete'),  # Удаление рассылки
+
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,56 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная страница</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container">
-        <!-- Блок для авторизации (вход/регистрация или выход) -->
-        <div class="auth-buttons text-right mt-4">
-            {% if user.is_authenticated %}
-                <a href="{% url 'account_logout' %}" class="btn btn-danger">Выйти</a>
-            {% else %}
-                <a href="{% url 'account_login' %}" class="btn btn-primary">Войти</a>
-                <a href="{% url 'account_signup' %}" class="btn btn-success">Регистрация</a>
-            {% endif %}
-        </div>
+{% extends "base_generic.html" %}
 
-        <!-- Приветственное сообщение -->
-        <h1>Bonjour!</h1>
+{% block title %}Главная страница{% endblock %}
 
-        <!-- Статистика по рассылкам и клиентам -->
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <h3>Total Mailings</h3>
-                <p>{{ total_mailings }}</p>
-            </div>
-            <div class="col-md-4">
-                <h3>Active Mailings</h3>
-                <p>{{ active_mailings }}</p>
-            </div>
-            <div class="col-md-4">
-                <h3>Unique Clients</h3>
-                <p>{{ unique_clients }}</p>
-            </div>
-        </div>
-
-        <!-- Блок случайных статей из блога -->
-        <h2>Случайные статьи из блога:</h2>
-        <ul>
-            {% for post in random_posts %}
-                <li>
-                    <a href="{% url 'blog_detail' post.id %}">{{ post.title }}</a> - {{ post.published_date }}
-                </li>
-            {% empty %}
-                <li>Статьи пока не добавлены.</li>
-            {% endfor %}
-        </ul>
-
-        <!-- Кнопка для перехода на страницу со всеми статьями блога -->
-        <a href="{% url 'blog_list' %}" class="btn btn-primary mt-4">Перейти к блогу</a>
+{% block content %}
+<div class="container mt-4">
+    <!-- Кнопки для входа/выхода -->
+    <div class="auth-buttons text-right mt-4">
+        {% if user.is_authenticated %}
+            <a href="{% url 'account_logout' %}" class="btn btn-danger">Выйти</a>
+        {% else %}
+            <a href="{% url 'account_login' %}" class="btn btn-primary">Войти</a>
+            <a href="{% url 'account_signup' %}" class="btn btn-success">Регистрация</a>
+        {% endif %}
     </div>
-</body>
-</html>
+
+    <h1 class="text-center">Добро пожаловать на главную страницу</h1>
+
+    <!-- Статистика рассылок и клиентов -->
+    <div class="row text-center mt-5">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Всего рассылок</h3>
+                    <p>{{ total_mailings }}</p>
+                    <a href="{% url 'mailing-list' %}" class="btn btn-primary">Посмотреть все рассылки</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Активных рассылок</h3>
+                    <p>{{ active_mailings }}</p>
+                    <a href="{% url 'active-mailings' %}" class="btn btn-success">Посмотреть активные рассылки</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Уникальных клиентов</h3>
+                    <p>{{ unique_clients }}</p>
+                    <a href="{% url 'client-list' %}" class="btn btn-info">Посмотреть клиентов</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Раздел случайных статей блога -->
+    <h2 class="text-center my-5">Случайные статьи из блога:</h2>
+    <ul class="list-group">
+        {% for post in random_posts %}
+            <li class="list-group-item">
+                <a href="{% url 'blog_detail' post.id %}">{{ post.title }}</a> - {{ post.published_date }}
+            </li>
+        {% empty %}
+            <li class="list-group-item">Статьи пока не добавлены.</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Кнопка для перехода на страницу блога -->
+    <div class="text-center mt-4">
+        <a href="{% url 'blog_list' %}" class="btn btn-primary">Перейти к блогу</a>
+    </div>
+</div>
+{% endblock %}

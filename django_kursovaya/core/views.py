@@ -1,5 +1,3 @@
-from django.conf import settings
-import os
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from mailings.models import Mailing, Attempt, Client
@@ -14,36 +12,36 @@ logger = logging.getLogger(__name__)
 
 # Представления для домашней страницы
 def home(request):
+    # Проверяем, состоит ли пользователь в группах
+    is_admin = request.user.groups.filter(name='Admin').exists()
+    is_manager = request.user.groups.filter(name='Manager').exists()
+    is_client = request.user.groups.filter(name='Client').exists()
+
     # Проверка кэша для общего количества рассылок
     total_mailings = cache.get('total_mailings')
-    if total_mailings:
-        logger.info("Данные получены из кэша")
-    else:
-        logger.info("Данные загружены из базы и записаны в кэш")
+    if not total_mailings:
         total_mailings = Mailing.objects.count()
-        cache.set('total_mailings', total_mailings, timeout=60 * 15)  # Заменяем CACHE_TTL на конкретное значение для теста
+        cache.set('total_mailings', total_mailings, timeout=60 * 15)
 
-    # Остальная логика (получение активных рассылок и клиентов)
+    # Остальная логика
     active_mailings = Mailing.objects.filter(status='started').count()
     unique_clients = Client.objects.distinct().count()
 
-    # Получаем три случайные статьи из блога
+    # Кэширование статей блога
     random_posts = cache.get('random_posts')
-    if random_posts:
-        logger.info("Статьи блога получены из кэша")
-    else:
-        logger.info("Статьи блога загружены из базы и записаны в кэш")
+    if not random_posts:
+        random_posts = BlogPost.objects.order_by('?')[:3]
+        cache.set('random_posts', random_posts, timeout=60 * 15)
 
-    random_posts = BlogPost.objects.order_by('?')[:3]
-
-    # Передаем данные в контекст шаблона
     context = {
         'total_mailings': total_mailings,
         'active_mailings': active_mailings,
         'unique_clients': unique_clients,
         'random_posts': random_posts,
+        'is_admin': is_admin,
+        'is_manager': is_manager,
+        'is_client': is_client,
     }
-
     return render(request, 'home.html', context)
 
 
@@ -73,11 +71,13 @@ def create_mailing(request):
         form = MailingForm()
     return render(request, 'mailing_form.html', {'form': form})
 
+
 # Защита доступа к списку рассылок
 @login_required
 def mailing_list(request):
     mailings = Mailing.objects.all()
-    return render(request, 'mailing_list.html', {'mailings': mailings})
+    return render(request, 'mailings/mailing_list.html', {'mailings': mailings})
+
 
 # Ограничение доступа к редактированию рассылки (только для владельца)
 @login_required
@@ -92,6 +92,7 @@ def edit_mailing(request, mailing_id):
         form = MailingForm(instance=mailing)
     return render(request, 'mailing_form.html', {'form': form})
 
+
 # Удаление рассылки
 @login_required
 def delete_mailing(request, mailing_id):
@@ -99,11 +100,13 @@ def delete_mailing(request, mailing_id):
     mailing.delete()
     return redirect('mailing-list')
 
+
 # Просмотр отчетов по рассылкам
 @login_required
 def report_list(request):
     attempts = Attempt.objects.all()
     return render(request, 'report_list.html', {'attempts': attempts})
+
 
 # Проверка, является ли пользователь менеджером
 def is_manager(user):
@@ -114,8 +117,21 @@ def manager_dashboard(request):
     #logging.debug(f"User {user.username} is checking if they are a manager.")
     return render(request, 'manager_dashboard.html')
 
+def is_client(user):
+    return user.groups.filter(name='Client').exists()
+
 @login_required
 def client_dashboard(request):
     return render(request, 'client_dashboard.html')
 
 
+@login_required
+def active_mailings(request):
+    mailings = Mailing.objects.filter(status='started')
+    return render(request, 'mailings/active_mailings.html', {'mailings': mailings})
+
+# Вьюха для отображения списка клиентов
+@login_required
+def client_list(request):
+    clients = Client.objects.all()
+    return render(request, 'clients/client_list.html', {'clients': clients})

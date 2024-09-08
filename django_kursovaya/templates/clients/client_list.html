@@ -1,0 +1,30 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Список клиентов</h2>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Email</th>
+                <th>ФИО</th>
+                <th>Комментарий</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+                <tr>
+                    <td>{{ client.email }}</td>
+                    <td>{{ client.full_name }}</td>
+                    <td>{{ client.comment }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Кнопка возврата на главную страницу -->
+    <div class="text-center mt-4">
+        <a href="{% url 'home' %}" class="btn btn-primary">Вернуться на главную</a>
+    </div>
+</div>
+{% endblock %}
