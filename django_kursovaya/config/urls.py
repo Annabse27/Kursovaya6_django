@@ -26,6 +26,7 @@ from core.views import (client_dashboard, manager_dashboard,
 
 from django.urls import path
 from core import views as core_views  # Импорт представления home
+from core.views import disable_mailing, block_user
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -36,13 +37,16 @@ urlpatterns = [
     path('blog/', include('blog.urls')),  # Подключение блога
     path('accounts/', include('allauth.urls')),  # Авторизация через allauth
     path('', core_views.home, name='home'),  # Главная страница
-    path('manager/', core_views.manager_dashboard, name='manager_dashboard'),
+    path('manager/', manager_dashboard, name='manager_dashboard'),
     path('client_dashboard/', core_views.client_dashboard, name='client_dashboard'),
     path('admin_dashboard/', core_views.admin_dashboard, name='admin_dashboard'),
     path('profile/', core_views.profile, name='profile'),
     path('mailings/create/', core_views.create_mailing, name='mailing-create'),  # Создание рассылки
     path('mailings/<int:mailing_id>/edit/', core_views.edit_mailing, name='mailing-edit'),  # Редактирование рассылки
     path('mailings/<int:mailing_id>/delete/', core_views.delete_mailing, name='mailing-delete'),  # Удаление рассылки
+    path('admin/users/', core_views.admin_user_list, name='admin_user_list'),
+    path('manager/disable_mailing/<int:mailing_id>/', disable_mailing, name='disable_mailing'),
+    path('manager/block_user/<int:client_id>/', block_user, name='block_user'),
 
 ]
 

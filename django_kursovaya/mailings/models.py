@@ -1,4 +1,6 @@
 from django.db import models
+from django.conf import settings
+
 
 class Client(models.Model):
     """
@@ -9,8 +11,12 @@ class Client(models.Model):
     comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
+    # Добавляем поле для блокировки пользователя
+    is_active = models.BooleanField(default=True, verbose_name="Активен")
+
     def __str__(self):
         return self.full_name
+
 
 
 class Message(models.Model):
@@ -50,6 +56,14 @@ class Mailing(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created', verbose_name="Статус")
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name="mailings", verbose_name="Сообщение")
     clients = models.ManyToManyField(Client, related_name="mailings", verbose_name="Клиенты")
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='mailings',
+        verbose_name='Клиент'
+    )
+
 
     def __str__(self):
         return self.name

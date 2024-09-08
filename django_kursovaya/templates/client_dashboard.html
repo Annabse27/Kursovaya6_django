@@ -1,26 +1,21 @@
-{% load static %}
+{% extends "base_generic.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client Dashboard</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-</head>
-<body>
-    <header>
-        <h1>Welcome to Your Dashboard, {{ user.username }}</h1>
-    </header>
-    <nav>
-        <ul>
-            <li><a href="{% url 'mailing-list' %}">View Your Mailings</a></li>
-            <li><a href="{% url 'profile' %}">Edit Profile</a></li>
-            <li><a href="{% url 'account_logout' %}">Logout</a></li>
-        </ul>
-    </nav>
-    <footer>
-        <p>&copy; 2024 Your Company. All rights reserved.</p>
-    </footer>
-</body>
-</html>
+{% block title %}Панель клиента{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Панель клиента</h2>
+
+    <!-- Отображаем информацию для клиента -->
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Мои рассылки</h3>
+            <ul>
+                {% for mailing in mailings %}
+                    <li>{{ mailing.name }} - {{ mailing.status }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

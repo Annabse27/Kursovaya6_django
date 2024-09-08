@@ -1,27 +1,48 @@
-{% load static %}
+{% extends "base_generic.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-</head>
-<body>
-    <header>
-        <h1>Admin Dashboard</h1>
-    </header>
-    <nav>
-        <ul>
-            <li><a href="{% url 'admin:index' %}">Admin Site</a></li>
-            <li><a href="{% url 'mailing-list' %}">Manage Mailings</a></li>
-            <li><a href="{% url 'report-list' %}">View Reports</a></li>
-            <li><a href="{% url 'account_logout' %}">Logout</a></li>
-        </ul>
-    </nav>
-    <footer>
-        <p>&copy; 2024 Your Company. All rights reserved.</p>
-    </footer>
-</body>
-</html>
+{% block title %}Админ панель{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Админ панель</h2>
+
+    <!-- Отображаем статистику для админа -->
+    <div class="row text-center mt-5">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Всего рассылок</h3>
+                    <p>{{ total_mailings }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Активных рассылок</h3>
+                    <p>{{ active_mailings }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Уникальных клиентов</h3>
+                    <p>{{ unique_clients }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Проверяем, что пользователь является администратором -->
+    <body>
+        <div class="bottom-center">
+            {% if is_admin %}
+                <p>Bonjour!</p>
+            {% else %}
+                <p>Désolé, ne pas de permission!</p>
+            {% endif %}
+        </div>
+    </body>
+</div>
+{% endblock %}
