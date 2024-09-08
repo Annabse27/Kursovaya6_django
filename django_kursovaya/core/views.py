@@ -2,10 +2,8 @@ from django.conf import settings
 import os
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
-from django.http import HttpResponseForbidden
-from mailings.models import Mailing, Attempt
+from mailings.models import Mailing, Attempt, Client
 from mailings.forms import MailingForm
-import logging
 from blog.models import BlogPost
 
 
@@ -15,7 +13,28 @@ def home(request):
     print("BASE_DIR:", settings.BASE_DIR)
     print("Template DIRS:", settings.TEMPLATES[0]['DIRS'])
     print("Looking for template at:", os.path.join(settings.BASE_DIR, 'templates', 'home.html'))
-    return render(request, 'home.html')
+
+    # Получаем статистику для рассылок и клиентов
+    total_mailings = Mailing.objects.count()  # Количество рассылок всего
+    active_mailings = Mailing.objects.filter(status='started').count()  # Количество активных рассылок
+    unique_clients = Client.objects.distinct().count()  # Количество уникальных клиентов
+
+    # Получаем три случайные статьи из блога
+    random_posts = BlogPost.objects.order_by('?')[:3]
+
+    # Передаем данные в контекст шаблона
+    context = {
+        'total_mailings': total_mailings,
+        'active_mailings': active_mailings,
+        'unique_clients': unique_clients,
+        'random_posts': random_posts,
+    }
+
+    return render(request, 'home.html', context)
+
+
+
+
 
 # Защита профиля пользователя с помощью @login_required
 @login_required
@@ -88,7 +107,3 @@ def client_dashboard(request):
     return render(request, 'client_dashboard.html')
 
 
-#Логика для случайного выбора статей на главной странице
-def home(request):
-    random_posts = BlogPost.objects.order_by('?')[:3]
-    return render(request, 'home.html', {'random_posts': random_posts})
