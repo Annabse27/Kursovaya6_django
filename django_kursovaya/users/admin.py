@@ -5,7 +5,7 @@ from .models import CustomUser
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    # Вы можете указать здесь поля, которые будут отображаться в админке
+    # Нужно указать здесь поля, которые будут отображаться в админке
     list_display = ('username', 'email', 'is_staff', 'is_active', 'phone_number')
     list_filter = ('is_staff', 'is_active')
     search_fields = ('username', 'email')

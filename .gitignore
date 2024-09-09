@@ -19,11 +19,11 @@ db.sqlite3
 *.sqlite3
 
 # Django migrations
-**/migrations/
-**/migrations/*.pyc
-**/migrations/*.pyo
-**/migrations/*.pyd
-**/migrations/*.log
+#**/migrations/
+#**/migrations/*.pyc
+#**/migrations/*.pyo
+#**/migrations/*.pyd
+#**/migrations/*.log
 
 # Static and media files
 /static/
