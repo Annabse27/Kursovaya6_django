@@ -4,23 +4,30 @@
 
 {% block content %}
 <div class="container mt-4">
-   <h1 class="text-center">Добро пожаловать</h1>
+  <h1 class="text-center mb-5">Bienvenue!</h1>
 
-   <!-- Раздел случайных статей блога -->
-   <h2 class="text-center my-5">Случайные статьи из блога:</h2>
-   <ul class="list-group">
-       {% for post in random_posts %}
-           <li class="list-group-item">
-               <a href="{% url 'blog_detail' post.id %}">{{ post.title }}</a> - {{ post.published_date }}
-           </li>
-       {% empty %}
-           <li class="list-group-item">Статьи пока не добавлены.</li>
-       {% endfor %}
-   </ul>
+  <!-- Раздел случайных статей блога -->
+  <div class="row">
+      {% for post in random_posts %}
+      <div class="col-md-4">
+          <div class="card h-100">
+              <div class="card-body">
+                  <h5 class="card-title">{{ post.title }}</h5>
+                  <p class="card-text">{{ post.published_date }}</p>
+                  <a href="{% url 'blog_detail' post.id %}" class="btn btn-info mr-3">Читать далее</a>
+              </div>
+          </div>
+      </div>
+      {% empty %}
+      <div class="col-md-12">
+          <p class="text-center">Статьи пока не добавлены.</p>
+      </div>
+      {% endfor %}
+  </div>
 
-   <!-- Кнопка для перехода на страницу блога -->
-   <div class="text-center mt-4">
-       <a href="{% url 'blog_list' %}" class="btn btn-primary">Перейти ко всем статьям блога</a>
-   </div>
+  <!-- Кнопка для перехода на страницу блога -->
+  <div class="text-center mt-5">
+      <a href="{% url 'blog_list' %}" class="btn btn-info mr-3">Перейти ко всем статьям блога</a>
+  </div>
 </div>
 {% endblock %}

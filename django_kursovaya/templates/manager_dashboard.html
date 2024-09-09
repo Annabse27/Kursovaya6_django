@@ -29,9 +29,9 @@
                 </td>
                 <td>
                     {% if mailing.status != 'disabled' %}
-                        <a href="{% url 'disable_mailing' mailing.id %}" class="btn btn-danger">Отключить</a>
+                        <a href="{% url 'disable_mailing' mailing.id %}" class="btn btn-warning mr+3">Отключить</a>
                     {% else %}
-                        <button class="btn btn-secondary" disabled>Отключена</button>
+                        <button class="btn btn-secondary mr+3" disabled>Отключена</button>
                     {% endif %}
                 </td>
             </tr>
@@ -62,9 +62,9 @@
                 </td>
                 <td>
                     {% if client.is_active %}
-                        <a href="{% url 'block_user' client.id %}" class="btn btn-warning">Заблокировать</a>
+                        <a href="{% url 'block_user' client.id %}" class="btn btn-danger mr+3">Заблокировать</a>
                     {% else %}
-                        <button class="btn btn-secondary" disabled>Заблокирован</button>
+                        <button class="btn btn-secondary mr+3" disabled>Заблокирован</button>
                     {% endif %}
                 </td>
             </tr>
