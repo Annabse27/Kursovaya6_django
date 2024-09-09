@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+      Подтверждение выхода
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2>Вы уверены, что хотите выйти?</h2>
+
+    <form method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Выйти</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}

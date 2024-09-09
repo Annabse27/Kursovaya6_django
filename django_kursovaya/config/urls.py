@@ -27,6 +27,9 @@ from core.views import (client_dashboard, manager_dashboard,
 from django.urls import path
 from core import views as core_views  # Импорт представления home
 from core.views import disable_mailing, block_user
+from allauth.account.views import LogoutView
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -47,6 +50,7 @@ urlpatterns = [
     path('admin/users/', core_views.admin_user_list, name='admin_user_list'),
     path('manager/disable_mailing/<int:mailing_id>/', disable_mailing, name='disable_mailing'),
     path('manager/block_user/<int:client_id>/', block_user, name='block_user'),
+    #path('accounts/logout/', LogoutView.as_view(), name='account_logout'),  # Выход через allauth
 
 ]
 

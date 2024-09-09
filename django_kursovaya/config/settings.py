@@ -65,7 +65,9 @@ AUTHENTICATION_BACKENDS = (
 
 # Redirect URLs after login/logout
 LOGIN_REDIRECT_URL = '/'
+#SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 LOGOUT_REDIRECT_URL = '/'
+LOGOUT_ON_GET = False  # Убеждаемся, что выход происходит корректно
 
 # Middleware settings
 MIDDLEWARE = [
@@ -247,3 +249,12 @@ CACHES = {
 
 # Установи время кэширования (например, 15 минут)
 CACHE_TTL = 60 * 15
+
+
+
+
+"""
+SESSION_COOKIE_AGE = 1209600  # 2 недели
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+"""

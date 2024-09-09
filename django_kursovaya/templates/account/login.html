@@ -3,37 +3,40 @@
 {% load socialaccount %}
 
 {% block title %}
-    Войти
+   Войти
 {% endblock %}
 
 {% block content %}
-<h2>Войти</h2>
-<form method="post" action="{% url 'account_login' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Войти</button>
-</form>
+<div class="container mt-5">
+    <!--<h2 class="text-center">Войти</h2>-->
+    <form method="post" action="{% url 'account_login' %}" class="mt-4">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Войти</button>
+    </form>
 
+    <div class="text-center mt-4">
+        <p>Или войдите с помощью:</p>
+        <ul class="list-inline">
+            {% providers_media_js %}
+            {% if socialaccount_providers %}
+                {% for provider in socialaccount_providers %}
+                    <li class="list-inline-item">
+                        <a href="{% provider_login_url provider.id %}" class="btn btn-secondary">{{ provider.name }}</a>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <p>Нет доступных провайдеров для входа.</p>
+            {% endif %}
+        </ul>
+    </div>
 
-<p>Или войдите с помощью:</p>
-<!--
-<ul>
-    {% providers_media_js %}
-    {% if socialaccount_providers %}
-        {% for provider in socialaccount_providers %}
-            <li>
-                <a href="{% provider_login_url provider.id %}">
-                    Войти через {{ provider.name }}
-                </a>
-            </li>
-        {% endfor %}
-    {% else %}
-        <p>Нет доступных провайдеров для входа.</p>
-    {% endif %}
-</ul>
--->
-<!--
-<p>Забыли пароль? <a href="{% url 'account_reset_password' %}">Восстановить пароль</a></p>
--->
-<p>Еще нет аккаунта? <a href="{% url 'account_signup' %}">Зарегистрироваться</a></p>
+    <div class="text-center mt-4">
+        <p>Забыли пароль? <a class="btn btn-secondary mr-3" href="{% url 'account_reset_password' %}">Восстановить пароль</a></p>
+        <p>Еще нет аккаунта? <a class="btn btn-info mr-3" href="{% url 'account_signup' %}">Зарегистрироваться</a></p>
+    </div>
+</div>
 {% endblock %}
+

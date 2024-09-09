@@ -5,6 +5,7 @@ from mailings.forms import MailingForm
 from blog.models import BlogPost
 import logging
 from django.core.cache import cache
+from django.contrib.auth import logout
 
 
 logger = logging.getLogger(__name__)
@@ -211,3 +212,8 @@ def client_publications(request):
     # Показываем только публикации, связанные с этим клиентом
     publications = BlogPost.objects.filter(author=request.user)
     return render(request, 'client_publications.html', {'publications': publications})
+
+
+def custom_logout(request):
+    logout(request)
+    return redirect('home')  # Перенаправление на главную после выхода

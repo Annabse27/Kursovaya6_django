@@ -1,10 +1,23 @@
 {% extends "base_generic.html" %}
 
-{% block content %}
-<h2>Зарегистрироваться</h2>
-<form method="post" action="{% url 'account_signup' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Зарегистрироваться</button>
-</form>
+{% block title %}
+   Зарегистрироваться
 {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Зарегистрироваться</h2>
+    <form method="post" action="{% url 'account_signup' %}" class="mt-4">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
+    </form>
+
+    <div class="text-center mt-4">
+        <p>Уже есть аккаунт? <a class="btn btn-info" href="{% url 'account_login' %}">Войти</a></p>
+    </div>
+</div>
+{% endblock %}
+
