@@ -132,6 +132,8 @@ python manage.py loaddata users/fixtures/initial_data.json
 Запустите Redis через Docker:
 ```
 docker run -d --name redis-server -p 6379:6379 redis
+docker ps -a
+docker start redis-server
 ```
 
 Затем запустите сервер Django:
@@ -152,11 +154,6 @@ python manage.py runapscheduler
 - **/clients/** — Управление клиентами.
 - **/blog/** — Просмотр и управление статьями блога.
 
-## Тестирование
-Запустите тесты с помощью команды:
-```
-python manage.py test
-```
 
 ## Особенности реализации
 ### 1. **Роли и права доступа**
