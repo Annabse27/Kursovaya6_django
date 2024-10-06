@@ -1,5 +1,5 @@
 import logging
-from django_kursovaya.mailings.models import MailingSettings, MailingAttempt
+from .models import MailingSettings, MailingAttempt
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings

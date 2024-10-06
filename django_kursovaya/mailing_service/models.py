@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import CustomUser  # Убедись, что имя модели соответствует твоему проекту
+from users.models import CustomUser  # Убедись, что имя модели соответствует проекту
 
 NULLABLE = {'blank': True, 'null': True}
 
