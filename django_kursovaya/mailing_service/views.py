@@ -135,29 +135,30 @@ class MailingSettingsListView(LoginRequiredMixin, PermissionRequiredMixin, ListV
            return MailingSettings.objects.filter(owner=user)  # Фильтрация по владельцу
 
 
-
-
 class MailingSettingsDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
-   model = MailingSettings
-   permission_required = 'mailing.view_mailingsettings'
-   template_name = 'mailing_utils/mailing_detail.html'
+    model = MailingSettings
+    permission_required = 'mailing.view_mailingsettings'
+    template_name = 'mailing_utils/mailing_detail.html'
 
-
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mailing'] = self.get_object()  # Добавляем объект рассылки в контекст
+        return context
 
 
 class MailingSettingsCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-   model = MailingSettings
-   form_class = MailingSettingsForm
-   permission_required = 'mailing.add_mailingsettings'
-   template_name = 'mailing_utils/mailing_form.html'
-   success_url = reverse_lazy('mailing_service:settings')
+    model = MailingSettings
+    form_class = MailingSettingsForm
+    permission_required = 'mailing.add_mailingsettings'
+    template_name = 'mailing_utils/mailing_form.html'
+    success_url = reverse_lazy('mailing_service:settings')
 
 
-   def form_valid(self, form):
-       form.instance.owner = self.request.user
-       return super().form_valid(form)
-
-
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        form.instance.start_datetime = form.cleaned_data['start_datetime']
+        form.instance.end_datetime = form.cleaned_data['end_datetime']
+        return super().form_valid(form)
 
 
 class MailingSettingsUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
@@ -166,7 +167,6 @@ class MailingSettingsUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Upd
    permission_required = 'mailing.change_mailingsettings'
    template_name = 'mailing_utils/mailing_form.html'
    success_url = reverse_lazy('mailing_service:settings')
-
 
 
 
@@ -181,23 +181,19 @@ class MailingSettingsDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Del
 
 # --- Вьюха для попыток рассылок ---
 class MailingAttemptListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-   model = MailingAttempt
-   permission_required = 'mailing.view_mailingattempt'
-   template_name = 'mailing_utils/mailingattempt_list.html'
+    model = MailingAttempt
+    permission_required = 'mailing.view_mailingattempt'
+    template_name = 'mailing_utils/mailingattempt_list.html'
 
+    def get_queryset(self):
+        mailing_id = self.request.GET.get('mailing_id')  # Получаем ID рассылки из запроса
+        user = self.request.user
+        if user.is_superuser:
+            queryset = MailingAttempt.objects.filter(mailing__id=mailing_id)
+        else:
+            queryset = MailingAttempt.objects.filter(mailing__id=mailing_id, mailing__owner=user)
 
-   def get_queryset(self):
-       user = self.request.user
-       if user.is_superuser:
-           queryset = MailingAttempt.objects.all()
-       else:
-           queryset = MailingAttempt.objects.filter(mailing__owner=user)
-
-
-       print(queryset)  # Вывод в консоль для отладки
-       return queryset
-
-
+        return queryset
 
 
 # --- Вьюха для отчета ---

@@ -1,25 +1,26 @@
 {% extends 'base.html' %}
 {% block title %}Создать / Редактировать клиента{% endblock %}
 
+
 {% block content %}
 <div class="container mt-4">
-    <h2>{% if client.pk %}Редактировать{% else %}Создать{% endif %} клиента</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            {{ form.email }}
-        </div>
-        <div class="mb-3">
-            <label for="name" class="form-label">Имя</label>
-            {{ form.name }}
-        </div>
-        <div class="mb-3">
-            <label for="comments" class="form-label">Комментарии</label>
-            {{ form.comments }}
-        </div>
-        <button type="submit" class="btn btn-success">{% if client.pk %}Обновить{% else %}Создать{% endif %}</button>
-        <a href="{% url 'mailings:clients' %}" class="btn btn-secondary">Отмена</a>
-    </form>
+   <h2>{% if form.instance.pk %}Редактировать{% else %}Создать{% endif %} клиента</h2>
+   <form method="post">
+       {% csrf_token %}
+       <div class="mb-3">
+           <label for="email" class="form-label">Email</label>
+           {{ form.email }}
+       </div>
+       <div class="mb-3">
+           <label for="name" class="form-label">Имя</label>
+           {{ form.name }}
+       </div>
+       <div class="mb-3">
+           <label for="comments" class="form-label">Комментарии</label>
+           {{ form.comments }}
+       </div>
+       <button type="submit" class="btn btn-success">{% if form.instance.pk %}Обновить{% else %}Создать{% endif %}</button>
+       <a href="{% url 'mailing_service:clients' %}" class="btn btn-secondary">Отмена</a>
+   </form>
 </div>
 {% endblock %}

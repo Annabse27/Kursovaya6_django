@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h2>Сообщения для рассылок</h2>
+  <h2>Текст для рассылок</h2>
   <a href="{% url 'mailing_service:create_message' %}" class="btn btn-success mb-3">Создать новое сообщение</a>
   <table class="table table-striped">
       <thead>
@@ -27,7 +27,7 @@
           </tr>
           {% empty %}
           <tr>
-              <td colspan="3" class="text-center">Сообщений пока нет.</td>
+              <td colspan="3" class="text-center">Нет сообщений.</td>
           </tr>
           {% endfor %}
       </tbody>

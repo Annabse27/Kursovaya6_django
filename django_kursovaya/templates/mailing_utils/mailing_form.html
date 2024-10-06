@@ -1,33 +1,50 @@
 {% extends 'base.html' %}
 {% block title %}Создать / Редактировать рассылку{% endblock %}
 
+
 {% block content %}
 <div class="container mt-4">
-    <h2>{% if mailing.pk %}Редактировать{% else %}Создать{% endif %} рассылку</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label class="form-label">Дата и время начала (формат: YYYY-MM-DD HH:MM:SS)</label>
-            {{ form.start_datetime }}
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Дата и время окончания (формат: YYYY-MM-DD HH:MM:SS)</label>
-            {{ form.end_datetime }}
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Периодичность</label>
-            {{ form.periodicity }}
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Сообщение</label>
-            {{ form.message }}
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Клиенты</label>
-            {{ form.clients }}
-        </div>
-        <button type="submit" class="btn btn-success">{% if mailing.pk %}Обновить{% else %}Создать{% endif %}</button>
-        <a href="{% url 'mailings:settings' %}" class="btn btn-secondary">Отмена</a>
-    </form>
+   <h2>{% if form.instance.pk %}Редактировать{% else %}Создать{% endif %} рассылку</h2>
+   <form method="post">
+       {% csrf_token %}
+
+
+       <div class="mb-3">
+           <label class="form-label">Дата начала (формат: YYYY-MM-DD)</label>
+           {{ form.start_date }}
+       </div>
+       <div class="mb-3">
+           <label class="form-label">Время начала (формат: HH:MM)</label>
+           {{ form.start_time }}
+       </div>
+       <div class="mb-3">
+           <label class="form-label">Дата окончания (формат: YYYY-MM-DD)</label>
+           {{ form.end_date }}
+       </div>
+       <div class="mb-3">
+           <label class="form-label">Время окончания (формат: HH:MM)</label>
+           {{ form.end_time }}
+       </div>
+       <div class="mb-3">
+           <label class="form-label">Периодичность</label>
+           {{ form.periodicity }}
+       </div>
+       <div class="mb-3">
+           <label class="form-label">Сообщение</label>
+           {{ form.message }}
+       </div>
+       <div class="mb-3">
+           <label class="form-label">Клиенты</label>
+           {{ form.clients }}
+       </div>
+       <div class="mb-3">
+           <label class="form-label">Статус рассылки</label>
+           {{ form.mailing_status }}
+       </div>
+
+
+       <button type="submit" class="btn btn-success">{% if form.instance.pk %}Обновить{% else %}Создать{% endif %}</button>
+       <a href="{% url 'mailing_service:settings' %}" class="btn btn-secondary">Отмена</a>
+   </form>
 </div>
 {% endblock %}

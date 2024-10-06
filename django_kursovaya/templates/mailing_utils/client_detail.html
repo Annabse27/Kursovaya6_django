@@ -1,18 +1,24 @@
+Используется правильный вызов полей через объект `client` в шаблоне.
+
+
+```html
 {% extends 'base.html' %}
 {% block title %}Детали клиента{% endblock %}
 
+
 {% block content %}
 <div class="container mt-4">
-    <h2>Детали клиента</h2>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">{{ client.name }}</h5>
-            <p class="card-text"><strong>Email:</strong> {{ client.email }}</p>
-            <p class="card-text"><strong>Комментарии:</strong> {{ client.comments }}</p>
-            <a href="{% url 'mailings:clients' %}" class="btn btn-primary">Назад к списку</a>
-            <a href="{% url 'mailings:update_client' client.pk %}" class="btn btn-warning">Редактировать</a>
-            <a href="{% url 'mailings:delete_client' client.pk %}" class="btn btn-danger">Удалить</a>
-        </div>
-    </div>
+   <h2>Детали клиента</h2>
+   <div class="card">
+       <div class="card-body">
+           <h5 class="card-title">{{ client.name }}</h5>
+           <p class="card-text"><strong>Email:</strong> {{ client.email }}</p>
+           <p class="card-text"><strong>Комментарии:</strong> {{ client.comments }}</p>
+           <a href="{% url 'mailing_service:clients' %}" class="btn btn-primary">Назад к списку</a>
+           <a href="{% url 'mailing_service:update_client' client.pk %}" class="btn btn-warning">Редактировать</a>
+           <a href="{% url 'mailing_service:delete_client' client.pk %}" class="btn btn-danger">Удалить</a>
+       </div>
+   </div>
 </div>
 {% endblock %}
+
