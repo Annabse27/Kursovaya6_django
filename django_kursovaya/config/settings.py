@@ -19,8 +19,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',  # приложение users
-    'mailings',  # приложение mailings
+    'mailings',
     'blog',
+    'mailing_service',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -47,7 +48,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Проверьте, что этот путь указан
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Проверьте, что этот путь указан
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

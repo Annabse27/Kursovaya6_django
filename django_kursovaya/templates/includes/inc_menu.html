@@ -8,23 +8,23 @@
             {% if user.is_authenticated %}
                 {% if user.is_staff %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/clients/">Клиенты</a>
+                        <a class="nav-link" href="{% url 'mailing_service:clients' %}">Клиенты</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/messages/">Сообщения</a>
+                        <a class="nav-link" href="{% url 'mailing_service:messages' %}">Сообщения</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/mailings/">Рассылки</a>
+                        <a class="nav-link" href="{% url 'mailing_service:settings' %}">Рассылки</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/reports/">Отчеты</a>
+                        <a class="nav-link" href="{% url 'mailing_service:report' %}">Отчеты</a>
                     </li>
                 {% elif user.groups.all.0.name == 'Manager' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/clients/">Клиенты</a>
+                        <a class="nav-link" href="{% url 'mailing_service:clients' %}">Клиенты</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/mailings/">Рассылки</a>
+                        <a class="nav-link" href="{% url 'mailing_service:settings' %}">Рассылки</a>
                     </li>
                 {% endif %}
                 <li class="nav-item">

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Рассылки{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+   <h2>Список рассылок</h2>
+
+   {% if perms.mailing.add_mailingsettings %}
+   <a href="{% url 'mailings:create_setting' %}" class="btn btn-success mb-3">Добавить рассылку</a>
+   {% endif %}
+
+   <div class="row row-cols-3 row-cols-sm-2 row-cols-md-3 g-3">
+       {% for mailing in object_list %}
+       <div class="col-4">
+           <div class="card shadow-sm">
+               <div class="card-body">
+                   <p class="card-text"><b>Рассылка #{{ mailing.id }}</b></p>
+                   <p class="card-text">Тема: {{ mailing.message }}</p>
+                   <p class="card-text">с {{ mailing.start_datetime }}</p>
+                   <p class="card-text">по {{ mailing.end_datetime }}</p>
+                   <p class="card-text">Периодичность: {{ mailing.periodicity }}</p>
+                   <p class="card-text">{{ mailing.get_mailing_status_display }}</p>
+
+                   {% if mailing.is_disabled and user.id == mailing.owner_id %}
+                   <p class="card-text bg-danger text-white"><b>Отключена менеджером</b></p>
+                   {% endif %}
+
+                   <div class="d-flex justify-content-between align-items-center">
+                       <div class="btn-group">
+                           {% if perms.mailing.view_mailingsettings or user.is_superuser or user.id == mailing.owner_id %}
+                           <a class="btn btn-outline-success" href="{% url 'mailings:view_setting' mailing.pk %}" role="button">Просмотр</a>
+                           {% endif %}
+                           {% if perms.mailing.can_disable_mailings or user.is_superuser %}
+                               {% if mailing.is_disabled %}
+                                   <a class="btn btn-warning" href="{% url 'mailings:view_setting' mailing.pk %}">Включить</a>
+                               {% else %}
+                                   <a class="btn btn-danger" href="{% url 'mailings:view_setting' mailing.pk %}">Отключить</a>
+                               {% endif %}
+                           {% endif %}
+                           {% if user.id == mailing.owner_id or user.is_superuser %}
+                           <a class="btn btn-outline-success" href="{% url 'mailings:update_setting' mailing.pk %}" role="button">Редактировать</a>
+                           <a class="btn btn-outline-success" href="{% url 'mailings:delete_setting' mailing.pk %}" role="button">Удалить</a>
+                           {% endif %}
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+       {% endfor %}
+   </div>
+</div>
+{% endblock %}

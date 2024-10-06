@@ -1,0 +1,14 @@
+   {% extends 'base.html' %}
+   {% block title %}Создать / Редактировать сообщение{% endblock %}
+
+   {% block content %}
+   <div class="container mt-4">
+     <h2>{% if form.instance.pk %}Редактировать{% else %}Создать{% endif %} сообщение</h2>
+     <form method="post">
+         {% csrf_token %}
+         {{ form.as_p }} <!-- Отображает всю форму автоматически -->
+         <button type="submit" class="btn btn-success">{% if form.instance.pk %}Обновить{% else %}Создать{% endif %}</button>
+         <a href="{% url 'mailing_service:messages' %}" class="btn btn-secondary">Отмена</a>
+     </form>
+   </div>
+   {% endblock %}
