@@ -1,25 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ post.title }}</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container">
-        <h1>{{ post.title }}</h1>
-        <p><strong>Опубликовано:</strong> {{ post.published_date }}</p>
-        <p>{{ post.content }}</p>
-        <p><strong>Количество просмотров:</strong> {{ post.views }}</p>
+{% extends 'base.html' %}
 
-        <!-- Если у статьи есть изображение, оно будет отображено -->
-        {% if post.image %}
-            <img src="{{ post.image.url }}" alt="Изображение статьи" class="img-fluid">
-        {% endif %}
+{% block title %}{{ post.title }}{% endblock %}
 
-        <!-- Кнопка возврата к списку статей -->
-        <a href="{% url 'blog_list' %}" class="btn btn-secondary mt-4">Назад к статьям</a>
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">{{ post.title }}</h1>
+    <p class="text-muted">Опубликовано: {{ post.created_at|date:"d.m.Y" }} | Просмотры: {{ post.views_count }}</p>
+    {% if post.preview %}
+        <img src="{{ post.preview.url }}" class="img-fluid mb-4" alt="{{ post.title }}">
+    {% endif %}
+    <div class="content">
+        <p>{{ post.content|linebreaks }}</p>
     </div>
-</body>
-</html>
+    <a href="{% url 'blog:blog_list' %}" class="btn btn-secondary mt-4">Назад к списку</a>
+</div>
+{% endblock %}

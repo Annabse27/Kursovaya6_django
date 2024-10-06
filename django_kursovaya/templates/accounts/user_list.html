@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Список пользователей{% endblock %}
+
+{% block content %}
+<section class="py-5 text-center container">
+    <div class="row py-lg-5">
+        <div class="col-lg-6 col-md-8 mx-auto">
+            <h2 class="fw-light">Список пользователей сервиса</h2>
+        </div>
+    </div>
+</section>
+<div class="album py-5 bg-light">
+    <div class="container">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            {% for object in object_list %}
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ object.email }}</h5>
+                        <p class="card-text"><strong>Телефон:</strong> {{ object.phone_number }}</p>
+                        <p class="card-text"><strong>Компания:</strong> {{ object.company }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if not object.is_superuser and not object.is_staff %}
+                                {% if user.is_superuser or user.has_perm('users.can_block_user') %}
+                                    {% if object.is_active %}
+                                        <a class="btn btn-warning" href="{% url 'users:block_user' object.pk %}">Заблокировать</a>
+                                    {% else %}
+                                        <a class="btn btn-success" href="{% url 'users:block_user' object.pk %}">Разблокировать</a>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

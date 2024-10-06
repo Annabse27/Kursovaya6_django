@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Редактировать пост{% else %}Создать новый пост{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">{% if form.instance.pk %}Редактировать пост{% else %}Создать новый пост{% endif %}</h2>
+
+  <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}  <!-- Поле is_published теперь будет отображаться здесь -->
+      <button type="submit" class="btn btn-success">{% if form.instance.pk %}Сохранить{% else %}Опубликовать{% endif %}</button>
+      <a href="{% url 'blog:blog_list' %}" class="btn btn-secondary">Отмена</a>
+  </form>
+</div>
+{% endblock %}

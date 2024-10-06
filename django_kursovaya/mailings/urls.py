@@ -1,36 +1,31 @@
 from django.urls import path
-from .views import (
-    ClientListCreateView, ClientDetailView,
-    MessageListCreateView, MessageDetailView,
-    MailingListCreateView, MailingDetailView,
-    AttemptListCreateView, AttemptDetailView
-)
-from core.views import (
-    mailing_list, create_mailing, edit_mailing,
-    delete_mailing, report_list
-)
+from . import views
+
+app_name = 'mailings'
 
 urlpatterns = [
-    # Клиенты
-    path('clients/', ClientListCreateView.as_view(), name='client-list-create'),
-    path('clients/<int:pk>/', ClientDetailView.as_view(), name='client-detail'),
+    path('', views.home, name='home'),  # Убедитесь, что хотя бы один маршрут здесь есть
+    path('clients/', views.ClientListView.as_view(), name='clients'),
+    path('client/create/', views.ClientCreateView.as_view(), name='create_client'),
+    path('client/<int:pk>/', views.ClientDetailView.as_view(), name='view_client'),
+    path('client/<int:pk>/update/', views.ClientUpdateView.as_view(), name='update_client'),
+    path('client/<int:pk>/delete/', views.ClientDeleteView.as_view(), name='delete_client'),
 
-    # Сообщения
-    path('messages/', MessageListCreateView.as_view(), name='message-list-create'),
-    path('messages/<int:pk>/', MessageDetailView.as_view(), name='message-detail'),
+    path('messages/', views.MessageListView.as_view(), name='messages'),
+    path('message/create/', views.MessageCreateView.as_view(), name='create_message'),
+    path('message/<int:pk>/', views.MessageDetailView.as_view(), name='view_message'),
+    path('message/<int:pk>/update/', views.MessageUpdateView.as_view(), name='update_message'),
+    path('message/<int:pk>/delete/', views.MessageDeleteView.as_view(), name='delete_message'),
 
-    # Рассылки
-    path('mailings/', MailingListCreateView.as_view(), name='mailing-list-create'),
-    path('mailings/<int:pk>/', MailingDetailView.as_view(), name='mailing-detail'),
+    path('settings/', views.MailingSettingsListView.as_view(), name='settings'),
+    path('setting/create/', views.MailingSettingsCreateView.as_view(), name='create_setting'),
+    path('setting/<int:pk>/', views.MailingSettingsDetailView.as_view(), name='view_setting'),
+    path('setting/<int:pk>/update/', views.MailingSettingsUpdateView.as_view(), name='update_setting'),
+    path('setting/<int:pk>/delete/', views.MailingSettingsDeleteView.as_view(), name='delete_setting'),
 
-    # Попытки отправки
-    path('attempts/', AttemptListCreateView.as_view(), name='attempt-list-create'),
-    path('attempts/<int:pk>/', AttemptDetailView.as_view(), name='attempt-detail'),
+    path('attempts/', views.MailingAttemptListView.as_view(), name='attempts'),
 
-    # Для работы с рассылками и отчетами
-    path('list/', mailing_list, name='mailing-list'),
-    path('create/', create_mailing, name='mailing-create'),
-    path('<int:mailing_id>/edit/', edit_mailing, name='mailing-edit'),
-    path('<int:mailing_id>/delete/', delete_mailing, name='mailing-delete'),
-    path('reports/', report_list, name='report-list'),
+    path('reports/', views.ReportView.as_view(), name='report'),  # Указываем маршрут для отчёта
+
+
 ]

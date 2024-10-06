@@ -1,24 +1,30 @@
 import logging
 from django.core.management.base import BaseCommand
 from apscheduler.schedulers.background import BackgroundScheduler
-from mailings.tasks import check_scheduled_mailings
+from mailings.tasks import change_mailing_status, send_mailing
 
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    help = "Запускает планировщик для проверки рассылок"
+    help = "Запускает планировщик для проверки и отправки рассылок"
 
     def handle(self, *args, **kwargs):
         scheduler = BackgroundScheduler()
-        scheduler.add_job(check_scheduled_mailings, 'interval', minutes=10)
+
+        # Добавляем задачу для изменения статусов рассылок каждые 10 минут
+        scheduler.add_job(change_mailing_status, 'interval', minutes=10, id='change_mailing_status')
+        logger.info("Задача по обновлению статусов рассылок добавлена в планировщик.")
+
+        # Добавляем задачу для отправки рассылок каждые 10 минут
+        scheduler.add_job(send_mailing, 'interval', minutes=10, id='send_mailing')
+        logger.info("Задача по отправке рассылок добавлена в планировщик.")
+
         scheduler.start()
+        logger.info("Планировщик запущен для рассылок.")
 
-        logger.info("Планировщик запущен для проверки рассылок каждые 10 минут.")
-
-        # Останавливаем планировщик при остановке сервера
         try:
             while True:
-                pass
+                pass  # Держим планировщик активным
         except (KeyboardInterrupt, SystemExit):
             scheduler.shutdown()
             logger.info("Планировщик остановлен.")

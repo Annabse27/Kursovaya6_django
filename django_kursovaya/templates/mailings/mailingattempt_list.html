@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Попытки рассылок{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+   <h2>Попытки рассылок</h2>
+   <a href="{% url 'mailings:settings' %}" class="btn btn-primary mb-3">Назад к списку рассылок</a>
+
+   <table class="table table-striped">
+       <thead>
+           <tr>
+               <th>ID</th>
+               <th>Дата и время попытки</th>
+               <th>Статус</th>
+               <th>Ответ почтового сервера</th>
+           </tr>
+       </thead>
+       <tbody>
+           {% if object_list %}
+               {% for attempt in object_list %}
+               <tr>
+                   <td>{{ attempt.id }}</td>
+                   <td>{{ attempt.datetime_last_try }}</td>
+                   <td>{{ attempt.get_attempt_status_display }}</td>
+                   <td>{{ attempt.response_mail_server|default:"-" }}</td>
+               </tr>
+               {% endfor %}
+           {% else %}
+               <tr>
+                   <td colspan="4">Нет данных о попытках для этой рассылки.</td>
+               </tr>
+           {% endif %}
+       </tbody>
+   </table>
+
+   {# Отладочный вывод для шаблона #}
+   <p>Количество попыток рассылок: {{ object_list|length }}</p>
+    <h4>Отладка шаблона:</h4>
+   <p>Переданные данные:</p>
+   {% for attempt in object_list %}
+       <p>ID попытки: {{ attempt.id }}</p>
+       <p>Дата попытки: {{ attempt.datetime_last_try }}</p>
+       <p>Статус: {{ attempt.get_attempt_status_display }}</p>
+   {% empty %}
+       <p>Нет попыток.</p>
+   {% endfor %}
+
+</div>
+{% endblock %}

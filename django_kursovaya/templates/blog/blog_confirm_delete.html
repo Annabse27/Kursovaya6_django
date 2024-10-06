@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Удалить пост{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+   <h2 class="mb-4">Вы уверены, что хотите удалить "{{ object.title }}"?</h2>
+   <form method="post">
+       {% csrf_token %}
+       <!-- Кнопка подтверждения удаления -->
+       <button type="submit" class="btn btn-danger">Удалить</button>
+
+       <!-- Кнопка отмены, которая перенаправляет на список постов -->
+       <a href="{% url 'blog:blog_list' %}" class="btn btn-secondary">Отмена</a>
+   </form>
+</div>
+{% endblock %}

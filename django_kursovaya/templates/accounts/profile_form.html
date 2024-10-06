@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ user.is_authenticated|yesno:"Редактировать профиль,Регистрация" }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">{{ user.is_authenticated|yesno:"Редактирование профиля,Регистрация" }}</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary w-100">{{ user.is_authenticated|yesno:"Обновить,Зарегистрироваться" }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

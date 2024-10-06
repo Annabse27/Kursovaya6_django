@@ -1,167 +1,118 @@
-"""
-Настройки Django для проекта.
-
-Этот файл включает настройки, пути и переменные окружения для работы
-с проектом. Все настройки производятся через файл .env, за исключением
-некоторых стандартных значений.
-"""
-
 import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Базовый путь к проекту
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Загружаем переменные окружения из файла .env
 dotenv_path = BASE_DIR / '.env'
 load_dotenv(dotenv_path)
 
-# Основные настройки безопасности
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'fallback_secret_key')
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
 
-# Подключенные приложения
 INSTALLED_APPS = [
-   'django.contrib.admin',
-   'django.contrib.auth',
-   'django.contrib.contenttypes',
-   'django.contrib.sessions',
-   'django.contrib.messages',
-   'django.contrib.staticfiles',
-   'django.contrib.sites',  # Необходимо для allauth
-   'core',  # Важные пользовательские приложения
-   'users',
-   'mailings',
-   'blog',
-   'rest_framework',  # Подключение REST API
-   'allauth',  # Приложение для аутентификации
-   'allauth.account',
-   'allauth.socialaccount',
-   'allauth.socialaccount.providers.google',
-   'allauth.socialaccount.providers.github',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'users',  # приложение users
+    'mailings',  # приложение mailings
+    'blog',
 ]
 
-# Идентификатор сайта для django.contrib.sites
-SITE_ID = 1
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
-# Бэкенды аутентификации
-AUTHENTICATION_BACKENDS = (
-   'django.contrib.auth.backends.ModelBackend',
-   'allauth.account.auth_backends.AuthenticationBackend',
-)
-
-# Модель пользователя
 AUTH_USER_MODEL = 'users.CustomUser'
 
-# URL-адреса перенаправления после входа/выхода
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-LOGOUT_ON_GET = False  # Корректный выход
 
-# Middleware для обработки запросов
 MIDDLEWARE = [
-   'django.middleware.security.SecurityMiddleware',
-   'django.contrib.sessions.middleware.SessionMiddleware',
-   'django.middleware.common.CommonMiddleware',
-   'django.middleware.csrf.CsrfViewMiddleware',
-   'django.contrib.auth.middleware.AuthenticationMiddleware',
-   'django.contrib.messages.middleware.MessageMiddleware',
-   'django.middleware.clickjacking.XFrameOptionsMiddleware',
-   'allauth.account.middleware.AccountMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Основные пути и шаблоны
 ROOT_URLCONF = 'config.urls'
+
 TEMPLATES = [
-   {
-       'BACKEND': 'django.template.backends.django.DjangoTemplates',
-       'DIRS': [BASE_DIR / 'templates'],  # Директория для шаблонов
-       'APP_DIRS': True,
-       'OPTIONS': {
-           'context_processors': [
-               'django.template.context_processors.debug',
-               'django.template.context_processors.request',
-               'django.contrib.auth.context_processors.auth',
-               'django.contrib.messages.context_processors.messages',
-           ],
-       },
-   },
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],  # Проверьте, что этот путь указан
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.i18n',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
 ]
 
-# Настройки базы данных (используется PostgreSQL)
+
+
 DATABASES = {
-   'default': {
-       'ENGINE': 'django.db.backends.postgresql',
-       'NAME': os.getenv('DATABASE_NAME'),
-       'USER': os.getenv('DATABASE_USER'),
-       'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-       'HOST': os.getenv('DATABASE_HOST'),
-       'PORT': os.getenv('DATABASE_PORT'),
-   }
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
-# Валидация паролей
 AUTH_PASSWORD_VALIDATORS = [
-   {
-       'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-   },
-   {
-       'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-   },
-   {
-       'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-   },
-   {
-       'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-   },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
-# Настройки интернационализации
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Europe/Paris'
+TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Настройки для статических и медиа-файлов
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Путь для собранных статических файлов
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Конфигурация Redis для кэширования
-CACHES = {
-   'default': {
-       'BACKEND': 'django_redis.cache.RedisCache',
-       'LOCATION': 'redis://127.0.0.1:6379/1',  # Локальный Redis
-       'OPTIONS': {
-           'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-       },
-       'KEY_PREFIX': 'myproject'
-   }
-}
-CACHE_TTL = 60 * 15  # Время жизни кэша (15 минут)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = os.getenv('EMAIL_PORT', 587)
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'annabse27@gmail.com')
 
-"""
-# Настройка провайдеров (социальных сетей) для учетной записи
-SOCIALACCOUNT_PROVIDERS = {
-   'google': {
-       'SCOPE': [
-           'profile',
-           'email',
-       ],
-       'AUTH_PARAMS': {
-           'access_type': 'offline',
-       }
-   },
-   'github': {
-       'SCOPE': [
-           'user',
-           'repo',
-           'read:org',
-       ],
-   },
-}
-"""
+
+CACHES = {
+         'default': {
+             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+             'LOCATION': 'unique-snowflake',
+         }
+     }
+CACHE_ENABLED = True
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

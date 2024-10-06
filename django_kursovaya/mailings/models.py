@@ -1,86 +1,48 @@
 from django.db import models
-from django.conf import settings
+from users.models import CustomUser  # Убедись, что имя модели соответствует твоему проекту
+
+NULLABLE = {'blank': True, 'null': True}
+
 
 class Client(models.Model):
-    """
-    Модель для хранения информации о клиентах, которые подписаны на рассылку.
-    Включает поля для email, полного имени, комментария и даты создания.
-    """
-    email = models.EmailField(unique=True, verbose_name="Email клиента")
-    full_name = models.CharField(max_length=255, verbose_name="Полное имя")
-    comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    is_active = models.BooleanField(default=True, verbose_name="Активен")  # Поле для блокировки клиента
+    email = models.EmailField(unique=True, verbose_name="Email")
+    name = models.CharField(max_length=150, verbose_name="Имя клиента")
+    comments = models.TextField(verbose_name="Комментарии", **NULLABLE)
+    owner = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, verbose_name="Владелец", **NULLABLE)
 
     def __str__(self):
-        """
-        Возвращает полное имя клиента для удобного отображения в интерфейсе.
-        """
-        return self.full_name
+        return f"{self.name} ({self.email})"
 
 class Message(models.Model):
-    """
-    Модель для хранения сообщений, которые отправляются в рамках рассылки.
-    Включает тему, текст сообщения и дату создания.
-    """
-    subject = models.CharField(max_length=255, verbose_name="Тема сообщения")
+    theme = models.CharField(max_length=255, verbose_name="Тема")
     body = models.TextField(verbose_name="Тело сообщения")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    owner = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, verbose_name="Владелец", **NULLABLE)
 
     def __str__(self):
-        """
-        Возвращает тему сообщения для удобного отображения.
-        """
-        return self.subject
+        return self.theme
 
-class Mailing(models.Model):
-    """
-    Основная модель для рассылок, связывает сообщения и клиентов.
-    Содержит информацию о названии, времени начала, статусе и периодичности рассылки.
-    """
-    PERIODICITY_CHOICES = [
-        ('daily', 'Daily'),
-        ('weekly', 'Weekly'),
-        ('monthly', 'Monthly'),
-    ]
+class MailingSettings(models.Model):
+    PERIODS = (('daily', 'Ежедневно'), ('weekly', 'Еженедельно'), ('monthly', 'Ежемесячно'))
+    STATUSES = (('created', 'Создана'), ('launched', 'Запущена'), ('completed', 'Завершена'))
 
-    STATUS_CHOICES = [
-        ('created', 'Создана'),
-        ('started', 'Запущена'),
-        ('completed', 'Завершена'),
-    ]
-
-    name = models.CharField(max_length=255, verbose_name="Название рассылки")
-    start_time = models.DateTimeField(verbose_name="Дата и время начала")
-    periodicity = models.CharField(max_length=50, choices=PERIODICITY_CHOICES, verbose_name="Периодичность")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created', verbose_name="Статус")
-    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name="mailings", verbose_name="Сообщение")
-    clients = models.ManyToManyField(Client, related_name="mailings", verbose_name="Клиенты")
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='mailings',
-        verbose_name='Владелец'
-    )
+    start_datetime = models.DateTimeField(verbose_name="Дата и время начала")
+    end_datetime = models.DateTimeField(verbose_name="Дата и время окончания")
+    periodicity = models.CharField(max_length=20, choices=PERIODS, default='daily', verbose_name="Периодичность")
+    mailing_status = models.CharField(max_length=20, choices=STATUSES, default='created', verbose_name="Статус")
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, verbose_name="Сообщение")
+    clients = models.ManyToManyField(Client, related_name='mailings', verbose_name="Клиенты для рассылки")
+    owner = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, verbose_name="Владелец", **NULLABLE)
 
     def __str__(self):
-        """
-        Возвращает название рассылки для удобного отображения.
-        """
-        return self.name
+        return f"Рассылка {self.pk} ({self.get_periodicity_display()})"
 
-class Attempt(models.Model):
-    """
-    Модель для хранения информации о попытках отправки рассылок.
-    Включает дату и время попытки, статус успеха и ответ сервера.
-    """
-    mailing = models.ForeignKey(Mailing, on_delete=models.CASCADE, related_name="attempts", verbose_name="Рассылка")
-    attempted_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата и время попытки")
-    success = models.BooleanField(default=False, verbose_name="Успешно")
-    server_response = models.TextField(blank=True, null=True, verbose_name="Ответ сервера")
+class MailingAttempt(models.Model):
+    STATUS_CHOICES = (('success', 'Успешно'), ('failure', 'Неудача'))
+
+    mailing = models.ForeignKey(MailingSettings, on_delete=models.CASCADE, verbose_name="Рассылка")
+    datetime_last_try = models.DateTimeField(auto_now=True, verbose_name="Дата последней попытки")
+    attempt_status = models.CharField(max_length=10, choices=STATUS_CHOICES, verbose_name="Статус попытки")
+    response_mail_server = models.TextField(verbose_name="Ответ почтового сервера", **NULLABLE)
 
     def __str__(self):
-        """
-        Возвращает информацию о попытке для удобного отображения.
-        """
-        return f"Попытка {self.mailing.name} в {self.attempted_at}"
+        return f"Попытка {self.pk} - {self.get_attempt_status_display()}"

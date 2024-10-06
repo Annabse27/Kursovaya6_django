@@ -1,57 +1,46 @@
-from django.core.mail import send_mail
-from django.utils import timezone
 import logging
-from .models import Mailing
+from .models import MailingSettings, MailingAttempt
+from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 
-# Настраиваем логирование
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def send_mailing(mailing_id):
-    logger.info(f"Запуск задачи отправки писем для рассылки с ID: {mailing_id}")
-
-    try:
-        mailing = Mailing.objects.get(id=mailing_id)
-        logger.debug(f"Получена рассылка: {mailing}")
-    except Mailing.DoesNotExist:
-        logger.error(f"Рассылка с ID {mailing_id} не найдена.")
-        return
-
-    if mailing.status != 'created':
-        logger.warning(f"Рассылка с ID {mailing_id} уже обработана или не находится в статусе 'created'. Текущий статус: {mailing.status}")
-        return
-
-    mailing.status = 'started'
-    mailing.save()
-
-    clients = mailing.clients.all()
-    subject = mailing.message.subject
-    body = mailing.message.body
-
-    for client in clients:
-        try:
-            send_mail(
-                subject,
-                body,
-                'your-email@example.com',
-                [client.email],
-                fail_silently=False,
-            )
-            logger.info(f"Письмо успешно отправлено клиенту: {client.email}")
-        except Exception as e:
-            logger.error(f"Ошибка при отправке письма клиенту {client.email}: {e}")
-
-    mailing.status = 'completed'
-    mailing.save()
-    logger.info(f"Рассылка с ID {mailing_id} успешно завершена.")
-
-def check_scheduled_mailings():
-    logger.debug("Запуск проверки запланированных рассылок.")
-    current_time = timezone.now()
-
-    mailings = Mailing.objects.filter(status='created', start_time__lte=current_time)
-    logger.debug(f"Найдено {mailings.count()} рассылок для отправки.")
-
+def change_mailing_status():
+    logger.info("Запуск обновления статусов рассылок.")
+    # Здесь добавляется логика изменения статусов рассылок
+    # Например:
+    now = timezone.now()
+    mailings = MailingSettings.objects.filter(mailing_status='created', start_datetime__lte=now)
     for mailing in mailings:
-        logger.debug(f"Проверка рассылки с ID: {mailing.id}")
-        send_mailing(mailing.id)
+        mailing.mailing_status = 'launched'
+        mailing.save()
+        logger.info(f"Рассылка {mailing.id} запущена.")
+    # Обновляем статусы завершенных рассылок
+    completed_mailings = MailingSettings.objects.filter(end_datetime__lte=now)
+    for mailing in completed_mailings:
+        mailing.mailing_status = 'completed'
+        mailing.save()
+        logger.info(f"Рассылка {mailing.id} завершена.")
+
+def send_mailing():
+    logger.info("Запуск отправки рассылок.")
+    # Логика отправки рассылок
+    mailings = MailingSettings.objects.filter(mailing_status='launched')
+    for mailing in mailings:
+        recipients = [client.email for client in mailing.clients.all()]
+        send_mail(
+            subject=mailing.message.theme,
+            message=mailing.message.body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=recipients,
+            fail_silently=False,
+        )
+        # Логирование успешной отправки
+        attempt = MailingAttempt.objects.create(
+            mailing=mailing,
+            attempt_status='success',
+            datetime_last_try=timezone.now(),
+            response_mail_server="Отправлено успешно"
+        )
+        logger.info(f"Рассылка {mailing.id} отправлена.")
