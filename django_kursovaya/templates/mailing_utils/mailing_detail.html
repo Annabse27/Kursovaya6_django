@@ -1,34 +1,39 @@
 {% extends 'base.html' %}
 {% block title %}Детали рассылки{% endblock %}
 
-
 {% block content %}
 <div class="container mt-4">
-   <h2>Детали рассылки</h2>
-   <div class="card">
-       <div class="card-body">
-           <p><strong>Начало:</strong> {{ mailing.start_datetime }}</p>
-           <p><strong>Окончание:</strong> {{ mailing.end_datetime }}</p>
-           <p><strong>Периодичность:</strong> {{ mailing.get_periodicity_display }}</p>
-           <p><strong>Статус:</strong> {{ mailing.get_mailing_status_display }}</p>
-           <p><strong>Сообщение:</strong> {{ mailing.message.theme }}</p>
-           <p><strong>Клиенты:</strong>
-               {% for client in mailing.clients.all %}
-                   {{ client.email }}{% if not forloop.last %}, {% endif %}
-               {% endfor %}
-           </p>
+  <h2>Детали рассылки</h2>
+  <div class="card">
+      <div class="card-body">
+          <p><strong>Начало:</strong> {{ mailing.start_datetime }}</p>
+          <p><strong>Окончание:</strong> {{ mailing.end_datetime }}</p>
+          <p><strong>Периодичность:</strong> {{ mailing.get_periodicity_display }}</p>
+          <p><strong>Статус:</strong> {{ mailing.get_mailing_status_display }}</p>
+          <p><strong>Сообщение:</strong> {{ mailing.message.theme }}</p>
+          <p><strong>Клиенты:</strong>
+              {% for client in mailing.clients.all %}
+                  {{ client.email }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+          </p>
 
+          <!-- Кнопки управления -->
+          <a href="{% url 'mailing_service:update_setting' mailing.pk %}" class="btn btn-warning">Редактировать</a>
+          <a href="{% url 'mailing_service:delete_setting' mailing.pk %}" class="btn btn-danger">Удалить</a>
 
-           <!-- Кнопки управления -->
-           <a href="{% url 'mailing_service:update_setting' mailing.pk %}" class="btn btn-warning">Редактировать</a>
-           <a href="{% url 'mailing_service:delete_setting' mailing.pk %}" class="btn btn-danger">Удалить</a>
-
-
-           <!-- Дополнительная проверка на отключение -->
-           {% if mailing.mailing_status == 'launched' %}
-               <a href="{% url 'mailing_service:deactivate_mailing' mailing.pk %}" class="btn btn-secondary">Отключить</a>
-           {% endif %}
-       </div>
-   </div>
+          <!-- Форма для управления статусом рассылки -->
+          {% if can_deactivate %}
+              <form method="post">
+                  {% csrf_token %}
+                  <button type="submit" name="deactivate" class="btn btn-secondary">Отключить</button>
+              </form>
+          {% elif mailing.mailing_status == 'deactivated' %}
+              <form method="post">
+                  {% csrf_token %}
+                  <button type="submit" name="activate" class="btn btn-success">Включить</button>
+              </form>
+          {% endif %}
+      </div>
+  </div>
 </div>
 {% endblock %}

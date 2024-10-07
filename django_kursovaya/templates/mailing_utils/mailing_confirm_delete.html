@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-4">
    <h2>Удалить рассылку</h2>
-   <p>Уверены, что хотите удалить рассылку? "<strong>{{ mailing.start_datetime }}</strong>" и окончанием "<strong>{{ mailing.end_datetime }}</strong>"?</p>
+   <p>Уверены, что хотите удалить рассылку <strong>{{ mailing.start_datetime }}</strong>?</p>
    <form method="post">
        {% csrf_token %}
        <button type="submit" class="btn btn-danger">Удалить</button>

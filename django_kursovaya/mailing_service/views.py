@@ -7,7 +7,7 @@ from .models import Client, Message, MailingSettings, MailingAttempt
 from .forms import ClientForm, MessageForm, MailingSettingsForm
 from django.views.generic import TemplateView
 from blog.models import BlogPost
-
+from django.shortcuts import redirect
 
 
 
@@ -142,8 +142,31 @@ class MailingSettingsDetailView(LoginRequiredMixin, PermissionRequiredMixin, Det
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['mailing'] = self.get_object()  # Добавляем объект рассылки в контекст
+        mailing = self.get_object()  # Получаем объект рассылки
+        context['mailing'] = mailing
+
+        # Проверяем статус рассылки и добавляем соответствующую логику в контекст
+        if mailing.mailing_status == 'launched':
+            context['can_deactivate'] = True  # Позволяем отображать кнопку деактивации
+        else:
+            context['can_deactivate'] = False  # Не отображаем кнопку деактивации для завершенных рассылок
+
         return context
+
+    def post(self, request, *args, **kwargs):
+        """Логика для управления статусом рассылки"""
+        mailing = self.get_object()
+
+        if 'deactivate' in request.POST and mailing.mailing_status == 'launched':
+            # Деактивируем рассылку
+            mailing.mailing_status = 'deactivated'
+            mailing.save()
+        elif 'activate' in request.POST and mailing.mailing_status == 'deactivated':
+            # Активируем рассылку
+            mailing.mailing_status = 'launched'
+            mailing.save()
+
+        return redirect('mailing_service:view_setting', pk=mailing.pk)
 
 
 class MailingSettingsCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):

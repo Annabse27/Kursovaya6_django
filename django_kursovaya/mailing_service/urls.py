@@ -30,7 +30,6 @@ urlpatterns = [
     path('setting/<int:pk>/update/', MailingSettingsUpdateView.as_view(), name='update_setting'),
     path('setting/<int:pk>/delete/', MailingSettingsDeleteView.as_view(), name='delete_setting'),
 
-
     path('attempts/', MailingAttemptListView.as_view(), name='attempts'),
 
 
