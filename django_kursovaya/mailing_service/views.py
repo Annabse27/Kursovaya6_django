@@ -9,62 +9,141 @@ from django.views.generic import TemplateView
 from blog.models import BlogPost
 from django.shortcuts import redirect
 
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth.decorators import login_required
+
+# Функции блокировки и разблокировки клиента
+@login_required
+def block_client_view(request, pk):
+    """Блокировка клиента менеджером или администратором."""
+    if not request.user.groups.filter(name='Manager').exists() and not request.user.is_superuser:
+        raise PermissionDenied("У вас нет прав для блокировки клиентов.")
+
+    client = get_object_or_404(Client, pk=pk)
+    client.is_active = False
+    client.save()
+    return redirect('mailing_service:clients')
+
+
+@login_required
+def unblock_client_view(request, pk):
+    """Разблокировка клиента менеджером или администратором."""
+    if not request.user.groups.filter(name='Manager').exists() and not request.user.is_superuser:
+        raise PermissionDenied("У вас нет прав для разблокировки клиентов.")
+
+    client = get_object_or_404(Client, pk=pk)
+    client.is_active = True
+    client.save()
+    return redirect('mailing_service:clients')
+
 
 
 # --- Вьюхи для клиентов ---
-class ClientListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-   model = Client
-   permission_required = 'mailing.view_client'
-   template_name = 'mailing_utils/client_list.html'
+class ClientListView(LoginRequiredMixin, ListView):
+    model = Client
+    template_name = 'mailing_utils/client_list.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Проверка прав менеджера или суперпользователя
+        user = request.user
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            raise PermissionDenied("У вас нет прав для просмотра клиентов.")
+
+    def get_queryset(self):
+        user = self.request.user
+        # Разрешаем всем суперпользователям и менеджерам видеть всех клиентов
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
+            return Client.objects.all()
+        # Обычные пользователи могут видеть только своих клиентов
+        return Client.objects.filter(owner=user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Добавляем информацию о том, является ли пользователь менеджером
+        context['is_manager'] = self.request.user.groups.filter(name='Manager').exists()
+        return context
 
 
-   def get_queryset(self):
-       user = self.request.user
-       return Client.objects.filter(owner=user) if not user.is_superuser else Client.objects.all()
+class ClientDetailView(LoginRequiredMixin, DetailView):
+    model = Client
+    template_name = 'mailing_utils/client_detail.html'
 
-
-
-
-class ClientDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
-   model = Client
-   permission_required = 'mailing.view_client'
-   template_name = 'mailing_utils/client_detail.html'
-
-
+    def get_object(self, queryset=None):
+        user = self.request.user
+        client = super().get_object(queryset)
+        # Если пользователь является суперпользователем или менеджером, он может видеть всех клиентов
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
+            return client
+        # Обычные пользователи могут видеть только своих клиентов
+        if client.owner == user:
+            return client
+        else:
+            raise PermissionDenied("У вас нет прав для просмотра этого клиента.")
 
 
 class ClientCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-   model = Client
-   form_class = ClientForm
-   permission_required = 'mailing.add_client'
-   template_name = 'mailing_utils/client_form.html'
-   success_url = reverse_lazy('mailing_service:clients')
+    model = Client
+    form_class = ClientForm
+    permission_required = 'mailing.add_client'
+    template_name = 'mailing_utils/client_form.html'
+    success_url = reverse_lazy('mailing_service:clients')
+
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+        # Проверяем, если пользователь суперпользователь или менеджер
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            raise PermissionDenied("У вас нет прав для создания клиентов.")
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
 
-   def form_valid(self, form):
-       form.instance.owner = self.request.user
-       return super().form_valid(form)
+class ClientUpdateView(LoginRequiredMixin, UpdateView):
+    model = Client
+    form_class = ClientForm
+    template_name = 'mailing_utils/client_form.html'
+    success_url = reverse_lazy('mailing_service:clients')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Добавляем флаг для отображения менеджера
+        context['is_manager'] = self.request.user.groups.filter(name='Manager').exists()
+        return context
 
-
-
-class ClientUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-   model = Client
-   form_class = ClientForm
-   permission_required = 'mailing.change_client'
-   template_name = 'mailing_utils/client_form.html'
-   success_url = reverse_lazy('mailing_service:clients')
-
-
+    def get_object(self, queryset=None):
+        user = self.request.user
+        client = super().get_object(queryset)
+        # Если пользователь является суперпользователем или менеджером, они могут редактировать всех клиентов
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
+            return client
+        # Обычные пользователи могут редактировать только своих клиентов
+        if client.owner == user:
+            return client
+        else:
+            raise PermissionDenied("У вас нет прав для редактирования этого клиента.")
 
 
 class ClientDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-   model = Client
-   permission_required = 'mailing.delete_client'
-   template_name = 'mailing_utils/client_confirm_delete.html'
-   success_url = reverse_lazy('mailing_service:clients')
+    model = Client
+    permission_required = 'mailing.delete_client'
+    template_name = 'mailing_utils/client_confirm_delete.html'
+    success_url = reverse_lazy('mailing_service:clients')
 
-
+    def get_object(self, queryset=None):
+        user = self.request.user
+        client = super().get_object(queryset)
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
+            return client
+        if client.owner == user:
+            return client
+        else:
+            raise PermissionDenied("У вас нет прав для удаления этого клиента.")
 
 
 # --- Вьюхи для сообщений ---
@@ -126,13 +205,20 @@ class MailingSettingsListView(LoginRequiredMixin, PermissionRequiredMixin, ListV
    permission_required = 'mailing.view_mailingsettings'
    template_name = 'mailing_utils/mailing_list.html'
 
+   def has_permission(self):
+       """Переопределяем метод, чтобы учесть права менеджера."""
+       if self.request.user.groups.filter(name='Manager').exists():
+           return True  # Разрешаем доступ менеджерам
+       return super().has_permission()
 
    def get_queryset(self):
        user = self.request.user
        if user.is_superuser:
            return MailingSettings.objects.all()
+       elif user.groups.filter(name='Manager').exists():
+           return MailingSettings.objects.filter(owner=user)
        else:
-           return MailingSettings.objects.filter(owner=user)  # Фильтрация по владельцу
+           return MailingSettings.objects.none()
 
 
 class MailingSettingsDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):

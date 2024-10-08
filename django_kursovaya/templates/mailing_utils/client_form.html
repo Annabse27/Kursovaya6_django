@@ -1,26 +1,54 @@
 {% extends 'base.html' %}
 {% block title %}Создать / Редактировать клиента{% endblock %}
 
-
 {% block content %}
 <div class="container mt-4">
-   <h2>{% if form.instance.pk %}Редактировать{% else %}Создать{% endif %} клиента</h2>
-   <form method="post">
-       {% csrf_token %}
-       <div class="mb-3">
-           <label for="email" class="form-label">Email</label>
-           {{ form.email }}
-       </div>
-       <div class="mb-3">
-           <label for="name" class="form-label">Имя</label>
-           {{ form.name }}
-       </div>
-       <div class="mb-3">
-           <label for="comments" class="form-label">Комментарии</label>
-           {{ form.comments }}
-       </div>
-       <button type="submit" class="btn btn-success">{% if form.instance.pk %}Обновить{% else %}Создать{% endif %}</button>
-       <a href="{% url 'mailing_service:clients' %}" class="btn btn-secondary">Отмена</a>
-   </form>
+  <h2>{% if form.instance.pk %}Редактировать{% else %}Создать{% endif %} клиента</h2>
+  <form method="post">
+      {% csrf_token %}
+
+      {% if user.is_superuser %}
+          <!-- Администратор может редактировать данные клиента -->
+          <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              {{ form.email }}
+          </div>
+          <div class="mb-3">
+              <label for="name" class="form-label">Имя</label>
+              {{ form.name }}
+          </div>
+          <div class="mb-3">
+              <label for="comments" class="form-label">Комментарии</label>
+              {{ form.comments }}
+          </div>
+          <div class="mb-3">
+              <label for="status" class="form-label">Статус клиента</label>
+              <p><strong>{% if form.instance.is_active %}Активен{% else %}Заблокирован{% endif %}</strong></p> <!-- Отображаем статус -->
+          </div>
+
+          <!-- Если клиент заблокирован, показываем кнопку для разблокировки -->
+          {% if not form.instance.is_active %}
+              <a href="{% url 'mailing_service:unblock_client' form.instance.pk %}" class="btn btn-success">Разблокировать клиента</a>
+          {% endif %}
+
+          <button type="submit" class="btn btn-success">{% if form.instance.pk %}Обновить{% else %}Создать{% endif %}</button>
+      {% elif is_manager %}
+          <!-- Менеджер может блокировать/разблокировать клиента -->
+          <div class="mb-3">
+              <p><strong>Email:</strong> {{ form.instance.email }}</p>
+              <p><strong>Имя:</strong> {{ form.instance.name }}</p>
+              <p><strong>Комментарии:</strong> {{ form.instance.comments }}</p>
+              <p><strong>Статус:</strong> {% if form.instance.is_active %}Активен{% else %}Заблокирован{% endif %}</p>
+          </div>
+
+          {% if form.instance.is_active %}
+              <a href="{% url 'mailing_service:block_client' form.instance.pk %}" class="btn btn-warning">Заблокировать клиента</a>
+          {% else %}
+              <a href="{% url 'mailing_service:unblock_client' form.instance.pk %}" class="btn btn-success">Разблокировать клиента</a>
+          {% endif %}
+      {% endif %}
+
+      <a href="{% url 'mailing_service:clients' %}" class="btn btn-secondary">Отмена</a>
+  </form>
 </div>
 {% endblock %}

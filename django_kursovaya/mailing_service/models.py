@@ -9,6 +9,7 @@ class Client(models.Model):
     name = models.CharField(max_length=150, verbose_name="Имя клиента")
     comments = models.TextField(verbose_name="Комментарии", **NULLABLE)
     owner = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, verbose_name="Владелец", **NULLABLE)
+    is_active = models.BooleanField(default=True, verbose_name="Активный")  # Добавляем поле активности
 
     def __str__(self):
         return f"{self.name} ({self.email})"

@@ -1,24 +1,33 @@
-Используется правильный вызов полей через объект `client` в шаблоне.
-
-
-```html
 {% extends 'base.html' %}
 {% block title %}Детали клиента{% endblock %}
 
-
 {% block content %}
 <div class="container mt-4">
-   <h2>Детали клиента</h2>
-   <div class="card">
-       <div class="card-body">
-           <h5 class="card-title">{{ client.name }}</h5>
-           <p class="card-text"><strong>Email:</strong> {{ client.email }}</p>
-           <p class="card-text"><strong>Комментарии:</strong> {{ client.comments }}</p>
-           <a href="{% url 'mailing_service:clients' %}" class="btn btn-primary">Назад к списку</a>
-           <a href="{% url 'mailing_service:update_client' client.pk %}" class="btn btn-warning">Редактировать</a>
-           <a href="{% url 'mailing_service:delete_client' client.pk %}" class="btn btn-danger">Удалить</a>
-       </div>
-   </div>
+  <h2>Детали клиента</h2>
+  <div class="card">
+      <div class="card-body">
+          <h5 class="card-title">{{ client.name }}</h5>
+          <p class="card-text"><strong>Email:</strong> {{ client.email }}</p>
+          <p class="card-text"><strong>Комментарии:</strong> {{ client.comments }}</p>
+          <p class="card-text"><strong>Статус:</strong> {% if client.is_active %}Активен{% else %}Заблокирован{% endif %}</p>
+
+          <a href="{% url 'mailing_service:clients' %}" class="btn btn-primary">Назад к списку</a>
+
+          <!-- Кнопка "Редактировать" доступна только суперпользователям или менеджерам -->
+          {% if user.is_superuser or is_manager %}
+          <a href="{% url 'mailing_service:update_client' client.pk %}" class="btn btn-warning">Редактировать</a>
+          {% endif %}
+
+          <!-- Если клиент заблокирован, суперпользователь может его разблокировать -->
+          {% if user.is_superuser and not client.is_active %}
+          <a href="{% url 'mailing_service:unblock_client' client.pk %}" class="btn btn-success">Разблокировать клиента</a>
+          {% endif %}
+
+          <!-- Кнопка "Удалить" доступна только суперпользователям -->
+          {% if user.is_superuser %}
+          <a href="{% url 'mailing_service:delete_client' client.pk %}" class="btn btn-danger">Удалить</a>
+          {% endif %}
+      </div>
+  </div>
 </div>
 {% endblock %}
-
