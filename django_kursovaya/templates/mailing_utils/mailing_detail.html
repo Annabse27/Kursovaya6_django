@@ -22,6 +22,7 @@
           <a href="{% url 'mailing_service:delete_setting' mailing.pk %}" class="btn btn-danger">Удалить</a>
 
           <!-- Форма для управления статусом рассылки -->
+
           {% if can_deactivate %}
               <form method="post">
                   {% csrf_token %}
@@ -33,6 +34,12 @@
                   <button type="submit" name="activate" class="btn btn-success">Включить</button>
               </form>
           {% endif %}
+
+          <!-- Кнопка для просмотра попыток отправки рассылки -->
+          <a href="{% url 'mailing_service:attempts' mailing.pk %}" class="btn btn-info mt-3">Просмотреть попытки отправки</a>
+
+           <!-- Кнопка "Назад к рассылкам" -->
+          <a href="{% url 'mailing_service:settings' %}" class="btn btn-secondary mt-3">Назад к рассылкам</a>
       </div>
   </div>
 </div>

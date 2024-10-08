@@ -202,21 +202,20 @@ class MailingSettingsDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Del
 
 
 
-# --- Вьюха для попыток рассылок ---
 class MailingAttemptListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = MailingAttempt
     permission_required = 'mailing.view_mailingattempt'
     template_name = 'mailing_utils/mailingattempt_list.html'
 
     def get_queryset(self):
-        mailing_id = self.request.GET.get('mailing_id')  # Получаем ID рассылки из запроса
+        mailing_id = self.kwargs.get('pk')  # Получаем ID рассылки из URL
         user = self.request.user
         if user.is_superuser:
             queryset = MailingAttempt.objects.filter(mailing__id=mailing_id)
         else:
             queryset = MailingAttempt.objects.filter(mailing__id=mailing_id, mailing__owner=user)
-
         return queryset
+
 
 
 # --- Вьюха для отчета ---
