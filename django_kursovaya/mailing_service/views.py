@@ -13,6 +13,11 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import login_required
 
+import os  # Для работы с переменными окружения
+from django.core.mail import send_mail  # Для отправки писем
+from django.utils import timezone  # Для работы с датами и временем в Django
+
+
 # Функции блокировки и разблокировки клиента
 @login_required
 def block_client_view(request, pk):
@@ -299,11 +304,44 @@ class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
         form.instance.start_datetime = form.cleaned_data['start_datetime']
         form.instance.end_datetime = form.cleaned_data['end_datetime']
 
-        # Обычные пользователи могут создать рассылку только с начальным статусом "Создана"
+        # Обычные пользователи могут создать рассылку только со статусом "Создана"
         if not self.request.user.is_superuser and not self.request.user.groups.filter(name='Manager').exists():
             form.instance.mailing_status = 'created'
 
-        return super().form_valid(form)
+        # Сначала сохраняем рассылку
+        response = super().form_valid(form)
+
+        # Проверяем дату и время после создания
+        now = timezone.now()
+        mailing = self.object  # объект созданной рассылки
+
+        if mailing.start_datetime <= now <= mailing.end_datetime:
+            # Отправка писем клиентам, если текущее время между началом и окончанием рассылки
+            from_email = os.getenv('EMAIL_HOST_USER', 'default@example.com')
+            for client in mailing.clients.all():
+                try:
+                    send_mail(
+                        subject=mailing.message.theme,
+                        message=mailing.message.body,
+                        from_email=from_email,
+                        recipient_list=[client.email],
+                    )
+                    # Записываем успешную попытку отправки
+                    MailingAttempt.objects.create(
+                        mailing=mailing,
+                        attempt_status='success',
+                        response_mail_server='Email sent successfully',
+                    )
+                except Exception as e:
+                    # Записываем неудачную попытку
+                    MailingAttempt.objects.create(
+                        mailing=mailing,
+                        attempt_status='failure',
+                        response_mail_server=str(e),
+                    )
+
+        return response
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
