@@ -203,117 +203,153 @@ class MessageDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
 
 
 # --- Вьюхи для настроек рассылок ---
-class MailingSettingsListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-   model = MailingSettings
-   permission_required = 'mailing.view_mailingsettings'
-   template_name = 'mailing_utils/mailing_list.html'
 
-   def has_permission(self):
-       """Переопределяем метод, чтобы учесть права менеджера."""
-       if self.request.user.groups.filter(name='Manager').exists():
-           return True  # Разрешаем доступ менеджерам
-       return super().has_permission()
-
-   def get_queryset(self):
-       user = self.request.user
-       if user.is_superuser:
-           return MailingSettings.objects.all()
-       elif user.groups.filter(name='Manager').exists():
-           return MailingSettings.objects.filter(owner=user)
-       else:
-           return MailingSettings.objects.none()
-
-
-class MailingSettingsDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class MailingSettingsListView(LoginRequiredMixin, ListView):
     model = MailingSettings
-    permission_required = 'mailing.view_mailingsettings'
+    template_name = 'mailing_utils/mailing_list.html'
+
+    def get_queryset(self):
+        user = self.request.user
+        # Менеджеры и суперпользователи видят все рассылки
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
+            return MailingSettings.objects.all()
+        # Обычные пользователи видят только свои рассылки
+        return MailingSettings.objects.filter(owner=user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Добавляем информацию о роли пользователя
+        context['is_manager'] = self.request.user.groups.filter(name='Manager').exists()
+        context['is_client'] = self.request.user.groups.filter(name='Client').exists()
+        return context
+
+
+class MailingSettingsDetailView(LoginRequiredMixin, DetailView):
+    model = MailingSettings
     template_name = 'mailing_utils/mailing_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        mailing = self.get_object()  # Получаем объект рассылки
+        mailing = self.get_object()
         context['mailing'] = mailing
 
-        # Проверяем статус рассылки и добавляем соответствующую логику в контекст
-        if mailing.mailing_status == 'launched':
-            context['can_deactivate'] = True  # Позволяем отображать кнопку деактивации
-        else:
-            context['can_deactivate'] = False  # Не отображаем кнопку деактивации для завершенных рассылок
+        # Проверка, может ли рассылка быть деактивирована
+        context['can_deactivate'] = mailing.mailing_status == 'launched'
+
+        # Добавляем информацию о правах пользователя
+        context['is_superuser'] = self.request.user.is_superuser
+        context['is_manager'] = self.request.user.groups.filter(name='Manager').exists()
 
         return context
 
     def post(self, request, *args, **kwargs):
-        """Логика для управления статусом рассылки"""
         mailing = self.get_object()
 
-        if 'deactivate' in request.POST and mailing.mailing_status == 'launched':
-            # Деактивируем рассылку
-            mailing.mailing_status = 'deactivated'
-            mailing.save()
-        elif 'activate' in request.POST and mailing.mailing_status == 'deactivated':
-            # Активируем рассылку
-            mailing.mailing_status = 'launched'
-            mailing.save()
+        # Проверяем, имеет ли пользователь право изменять статус рассылки
+        if request.user.is_superuser or request.user.groups.filter(name='Manager').exists():
+            if 'deactivate' in request.POST and mailing.mailing_status == 'launched':
+                mailing.mailing_status = 'deactivated'
+                mailing.save()
+            elif 'activate' in request.POST and mailing.mailing_status == 'deactivated':
+                mailing.mailing_status = 'launched'
+                mailing.save()
 
         return redirect('mailing_service:view_setting', pk=mailing.pk)
 
 
-class MailingSettingsCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
     model = MailingSettings
     form_class = MailingSettingsForm
-    permission_required = 'mailing.add_mailingsettings'
     template_name = 'mailing_utils/mailing_form.html'
     success_url = reverse_lazy('mailing_service:settings')
-
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
         form.instance.start_datetime = form.cleaned_data['start_datetime']
         form.instance.end_datetime = form.cleaned_data['end_datetime']
+
+        # Обычные пользователи могут создать рассылку только с начальным статусом "Создана"
+        if not self.request.user.is_superuser and not self.request.user.groups.filter(name='Manager').exists():
+            form.instance.mailing_status = 'created'
+
         return super().form_valid(form)
 
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+        # Фильтруем клиентов для обычных пользователей
+        if not self.request.user.is_superuser and not self.request.user.groups.filter(name='Manager').exists():
+            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user)
+        return form
 
-class MailingSettingsUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-   model = MailingSettings
-   form_class = MailingSettingsForm
-   permission_required = 'mailing.change_mailingsettings'
-   template_name = 'mailing_utils/mailing_form.html'
-   success_url = reverse_lazy('mailing_service:settings')
-
-   def form_valid(self, form):
-       # Собираем данные о владельце и датах для сохранения
-       mailing = form.save(commit=False)
-       mailing.owner = self.request.user
-       mailing.start_datetime = form.cleaned_data['start_datetime']
-       mailing.end_datetime = form.cleaned_data['end_datetime']
-
-       # Сохраняем объект рассылки
-       mailing.save()
-
-       # Сохраняем ManyToMany данные (например, клиентов)
-       form.save_m2m()
-
-       return super().form_valid(form)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_manager'] = self.request.user.groups.filter(name='Manager').exists()
+        context['is_client'] = self.request.user.groups.filter(name='Client').exists()
+        return context
 
 
-class MailingSettingsDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-   model = MailingSettings
-   permission_required = 'mailing.delete_mailingsettings'
-   template_name = 'mailing_utils/mailing_confirm_delete.html'
-   success_url = reverse_lazy('mailing_service:settings')
+class MailingSettingsUpdateView(LoginRequiredMixin, UpdateView):
+    model = MailingSettings
+    form_class = MailingSettingsForm
+    template_name = 'mailing_utils/mailing_form.html'
+    success_url = reverse_lazy('mailing_service:settings')
 
+    def form_valid(self, form):
+        mailing = form.save(commit=False)
+        mailing.owner = self.request.user
+        mailing.start_datetime = form.cleaned_data['start_datetime']
+        mailing.end_datetime = form.cleaned_data['end_datetime']
+
+        # Обычные пользователи не могут изменять статус рассылки, только менеджеры и суперпользователи
+        if self.request.user.is_superuser or self.request.user.groups.filter(name='Manager').exists():
+            mailing.mailing_status = form.cleaned_data['mailing_status']
+        else:
+            # Обычные пользователи могут сохранять только свои рассылки в статусе "created"
+            if mailing.mailing_status != 'created':
+                mailing.mailing_status = 'created'
+
+        mailing.save()
+        form.save_m2m()
+        return super().form_valid(form)
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+        # Обычным пользователям показываем только их клиентов
+        if not self.request.user.is_superuser and not self.request.user.groups.filter(name='Manager').exists():
+            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user)
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_manager'] = self.request.user.groups.filter(name='Manager').exists()
+        context['is_client'] = self.request.user.groups.filter(name='Client').exists()
+        return context
+
+
+class MailingSettingsDeleteView(LoginRequiredMixin, DeleteView):
+    model = MailingSettings
+    template_name = 'mailing_utils/mailing_confirm_delete.html'
+    success_url = reverse_lazy('mailing_service:settings')
+
+    def get_object(self, queryset=None):
+        mailing = super().get_object(queryset)
+        # Проверяем, является ли пользователь владельцем рассылки
+        if self.request.user == mailing.owner or self.request.user.is_superuser:
+            return mailing
+        else:
+            raise PermissionDenied("У вас нет прав для удаления этой рассылки.")
 
 
 # --- Вьюха для попыток ---
-class MailingAttemptListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class MailingAttemptListView(LoginRequiredMixin, ListView):
     model = MailingAttempt
-    permission_required = 'mailing.view_mailingattempt'
     template_name = 'mailing_utils/mailingattempt_list.html'
 
     def get_queryset(self):
         mailing_id = self.kwargs.get('pk')  # Получаем ID рассылки из URL
         user = self.request.user
-        if user.is_superuser:
+        # Менеджеры и суперпользователи могут видеть все попытки отправки
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
             queryset = MailingAttempt.objects.filter(mailing__id=mailing_id)
         else:
             queryset = MailingAttempt.objects.filter(mailing__id=mailing_id, mailing__owner=user)
