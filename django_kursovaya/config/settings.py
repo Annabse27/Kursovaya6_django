@@ -18,7 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users',  # приложение users
+    'users',
     'mailings',
     'blog',
     'mailing_service',
@@ -117,3 +117,21 @@ CACHE_ENABLED = True
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# Настройки для Celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Используем Redis как брокер сообщений
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Celery Beat расписание задач
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'send_mailings_every_15_minutes': {
+        'task': 'mailing_service.tasks.send_scheduled_mailings',
+        'schedule': crontab(minute='*/15'),  # Запуск задачи каждые 15 минут
+    },
+}

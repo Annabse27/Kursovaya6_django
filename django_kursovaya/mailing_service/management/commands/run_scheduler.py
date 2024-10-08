@@ -1,4 +1,4 @@
-import logging
+'''import logging
 from django.core.management.base import BaseCommand
 from apscheduler.schedulers.background import BackgroundScheduler
 from mailing_service.tasks import change_mailing_status, send_mailing
@@ -28,3 +28,4 @@ class Command(BaseCommand):
         except (KeyboardInterrupt, SystemExit):
             scheduler.shutdown()
             logger.info("Планировщик остановлен.")
+'''
