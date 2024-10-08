@@ -1,54 +1,58 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="/">Главная</a>
-    <div class="collapse navbar-collapse">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'blog:blog_list' %}">Блог</a>
-            </li>
-            {% if user.is_authenticated %}
-                {% if user.is_staff %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'mailing_service:clients' %}">Клиенты</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'mailing_service:messages' %}">Сообщения</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'mailing_service:settings' %}">Рассылки</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'mailing_service:report' %}">Отчеты</a>
-                    </li>
-                {% elif user.groups.all.0.name == 'Manager' %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'mailing_service:clients' %}">Клиенты</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'mailing_service:settings' %}">Рассылки</a>
-                    </li>
-                {% elif user.groups.all.0.name == 'Client' %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'mailing_service:clients' %}">Мои клиенты</a>
-                    </li>
-                    <li class="nav-item">
-                        <!-- Обычный пользователь может просматривать свои рассылки -->
-                        <a class="nav-link" href="{% url 'mailing_service:settings' %}">Мои рассылки</a>
-                    </li>
-                {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'accounts:profile' %}">Профиль</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'accounts:logout' %}">Выход</a>
-                </li>
-            {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'accounts:login' %}">Вход</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'accounts:register' %}">Регистрация</a>
-                </li>
-            {% endif %}
-        </ul>
-    </div>
+   <a class="navbar-brand" href="/">Главная</a>
+   <div class="collapse navbar-collapse">
+       <ul class="navbar-nav mr-auto">
+           <li class="nav-item">
+               <a class="nav-link" href="{% url 'blog:blog_list' %}">Блог</a>
+           </li>
+           {% if user.is_authenticated %}
+               {% if user.is_staff %}
+                   <li class="nav-item">
+                       <a class="nav-link" href="{% url 'mailing_service:clients' %}">Клиенты</a>
+                   </li>
+                   <li class="nav-item">
+                       <a class="nav-link" href="{% url 'mailing_service:messages' %}">Сообщения</a>
+                   </li>
+                   <li class="nav-item">
+                       <a class="nav-link" href="{% url 'mailing_service:settings' %}">Рассылки</a>
+                   </li>
+                   <li class="nav-item">
+                       <a class="nav-link" href="{% url 'mailing_service:report' %}">Отчеты</a>
+                   </li>
+               {% elif user.groups.all.0.name == 'Manager' %}
+                   <li class="nav-item">
+                       <a class="nav-link" href="{% url 'mailing_service:clients' %}">Клиенты</a>
+                   </li>
+                   <li class="nav-item">
+                       <a class="nav-link" href="{% url 'mailing_service:settings' %}">Рассылки</a>
+                   </li>
+               {% elif user.groups.all.0.name == 'Client' %}
+                   <li class="nav-item">
+                       <a class="nav-link" href="{% url 'mailing_service:clients' %}">Мои клиенты</a>
+                   </li>
+                   <li class="nav-item">
+                       <!-- Обычный пользователь может просматривать свои рассылки -->
+                       <a class="nav-link" href="{% url 'mailing_service:settings' %}">Мои рассылки</a>
+                   </li>
+               {% endif %}
+               <!-- Кнопка "Мои сообщения" для всех авторизованных пользователей -->
+               <li class="nav-item">
+                   <a class="nav-link" href="{% url 'mailing_service:messages' %}">Сообщения</a>
+               </li>
+               <li class="nav-item">
+                   <a class="nav-link" href="{% url 'accounts:profile' %}">Профиль</a>
+               </li>
+               <li class="nav-item">
+                   <a class="nav-link" href="{% url 'accounts:logout' %}">Выход</a>
+               </li>
+           {% else %}
+               <li class="nav-item">
+                   <a class="nav-link" href="{% url 'accounts:login' %}">Вход</a>
+               </li>
+               <li class="nav-item">
+                   <a class="nav-link" href="{% url 'accounts:register' %}">Регистрация</a>
+               </li>
+           {% endif %}
+       </ul>
+   </div>
 </nav>

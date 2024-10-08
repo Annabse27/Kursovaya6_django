@@ -4,7 +4,12 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Текст для рассылок</h2>
-    <a href="{% url 'mailing_service:create_message' %}" class="btn btn-success mb-3">Создать новое сообщение</a>
+
+    <!-- Кнопка "Создать новое сообщение" доступна только для пользователей с правом на добавление сообщений -->
+    {% if perms.mailing.add_message and not perms.mailing_manager %}
+        <a href="{% url 'mailing_service:create_message' %}" class="btn btn-success mb-3">Создать новое сообщение</a>
+    {% endif %}
+
     <table class="table table-striped">
         <thead>
             <tr>

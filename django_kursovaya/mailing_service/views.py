@@ -150,14 +150,17 @@ class ClientDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 
 
 # --- Вьюхи для сообщений ---
+
 class MessageListView(LoginRequiredMixin, ListView):
     model = Message
     template_name = 'mailing_utils/message_list.html'  # Путь к шаблону
 
     def get_queryset(self):
         user = self.request.user
-        # Обычные пользователи видят только свои сообщения, суперпользователи видят все
-        return Message.objects.filter(owner=user) if not user.is_superuser else Message.objects.all()
+        # Менеджеры и суперпользователи видят все сообщения, обычные пользователи — только свои
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
+            return Message.objects.all()
+        return Message.objects.filter(owner=user)
 
 
 class MessageDetailView(LoginRequiredMixin, DetailView):
@@ -166,10 +169,16 @@ class MessageDetailView(LoginRequiredMixin, DetailView):
 
     def get_object(self, queryset=None):
         message = super().get_object(queryset)
-        # Проверяем, является ли пользователь владельцем сообщения или суперпользователем
-        if message.owner != self.request.user and not self.request.user.is_superuser:
+        # Проверяем, является ли пользователь владельцем сообщения, менеджером или суперпользователем
+        if message.owner != self.request.user and not (
+                self.request.user.is_superuser or self.request.user.groups.filter(name='Manager').exists()):
             raise PermissionDenied("У вас нет прав для просмотра этого сообщения.")
         return message
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_superuser_or_manager'] = self.request.user.is_superuser or self.request.user.groups.filter(name='Manager').exists()
+        return context
 
 
 class MessageCreateView(LoginRequiredMixin, CreateView):
