@@ -285,6 +285,15 @@ class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
     template_name = 'mailing_utils/mailing_form.html'
     success_url = reverse_lazy('mailing_service:settings')
 
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+        # Обычные пользователи видят только своих клиентов
+        if not self.request.user.is_superuser:
+            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user)
+            form.fields['message'].queryset = Message.objects.filter(owner=self.request.user)
+        return form
+
     def form_valid(self, form):
         form.instance.owner = self.request.user
         form.instance.start_datetime = form.cleaned_data['start_datetime']
@@ -295,13 +304,6 @@ class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
             form.instance.mailing_status = 'created'
 
         return super().form_valid(form)
-
-    def get_form(self, *args, **kwargs):
-        form = super().get_form(*args, **kwargs)
-        # Фильтруем клиентов для обычных пользователей
-        if not self.request.user.is_superuser and not self.request.user.groups.filter(name='Manager').exists():
-            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user)
-        return form
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -315,6 +317,15 @@ class MailingSettingsUpdateView(LoginRequiredMixin, UpdateView):
     form_class = MailingSettingsForm
     template_name = 'mailing_utils/mailing_form.html'
     success_url = reverse_lazy('mailing_service:settings')
+
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+        # Обычные пользователи видят только своих клиентов
+        if not self.request.user.is_superuser:
+            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user)
+            form.fields['message'].queryset = Message.objects.filter(owner=self.request.user)
+        return form
 
     def form_valid(self, form):
         mailing = form.save(commit=False)
@@ -334,12 +345,6 @@ class MailingSettingsUpdateView(LoginRequiredMixin, UpdateView):
         form.save_m2m()
         return super().form_valid(form)
 
-    def get_form(self, *args, **kwargs):
-        form = super().get_form(*args, **kwargs)
-        # Обычным пользователям показываем только их клиентов
-        if not self.request.user.is_superuser and not self.request.user.groups.filter(name='Manager').exists():
-            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user)
-        return form
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
