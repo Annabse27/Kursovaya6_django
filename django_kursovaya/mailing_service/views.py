@@ -150,56 +150,69 @@ class ClientDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 
 
 # --- Вьюхи для сообщений ---
-class MessageListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-   model = Message
-   permission_required = 'mailing.view_message'
-   template_name = 'mailing_utils/message_list.html'  # Убедитесь, что путь к шаблону верный
-
-
-   def get_queryset(self):
-       user = self.request.user
-       return Message.objects.filter(owner=user) if not user.is_superuser else Message.objects.all()
-
-
-class MessageDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class MessageListView(LoginRequiredMixin, ListView):
     model = Message
-    permission_required = 'mailing.view_message'
-    template_name = 'mailing_utils/message_detail.html'  # Обновлено
+    template_name = 'mailing_utils/message_list.html'  # Путь к шаблону
+
+    def get_queryset(self):
+        user = self.request.user
+        # Обычные пользователи видят только свои сообщения, суперпользователи видят все
+        return Message.objects.filter(owner=user) if not user.is_superuser else Message.objects.all()
 
 
-class MessageCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class MessageDetailView(LoginRequiredMixin, DetailView):
     model = Message
-    form_class = MessageForm
-    permission_required = 'mailing.add_message'
-    template_name = 'mailing_utils/message_form.html'  # Обновлено
-    success_url = reverse_lazy('mailing_service:messages')
+    template_name = 'mailing_utils/message_detail.html'  # Путь к шаблону
 
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
+    def get_object(self, queryset=None):
+        message = super().get_object(queryset)
+        # Проверяем, является ли пользователь владельцем сообщения или суперпользователем
+        if message.owner != self.request.user and not self.request.user.is_superuser:
+            raise PermissionDenied("У вас нет прав для просмотра этого сообщения.")
+        return message
 
 
-class MessageUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class MessageCreateView(LoginRequiredMixin, CreateView):
     model = Message
     form_class = MessageForm
-    permission_required = 'mailing.change_message'
-    template_name = 'mailing_utils/message_form.html'  # Обновлено
+    template_name = 'mailing_utils/message_form.html'  # Путь к шаблону
     success_url = reverse_lazy('mailing_service:messages')
 
     def form_valid(self, form):
-        form.instance.owner = self.request.user
+        form.instance.owner = self.request.user  # Устанавливаем владельца сообщения
         return super().form_valid(form)
 
 
-class MessageDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class MessageUpdateView(LoginRequiredMixin, UpdateView):
     model = Message
-    permission_required = 'mailing.delete_message'
-    template_name = 'mailing_utils/message_confirm_delete.html'  # Обновлено
+    form_class = MessageForm
+    template_name = 'mailing_utils/message_form.html'  # Путь к шаблону
     success_url = reverse_lazy('mailing_service:messages')
 
+    def dispatch(self, request, *args, **kwargs):
+        message = self.get_object()
+        # Проверка прав на редактирование сообщения
+        if message.owner != request.user and not request.user.is_superuser:
+            raise PermissionDenied("У вас нет прав для редактирования этого сообщения.")
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
-        form.instance.owner = self.request.user
+        form.instance.owner = self.request.user  # Устанавливаем владельца
         return super().form_valid(form)
+
+
+class MessageDeleteView(LoginRequiredMixin, DeleteView):
+    model = Message
+    template_name = 'mailing_utils/message_confirm_delete.html'  # Путь к шаблону
+    success_url = reverse_lazy('mailing_service:messages')
+
+    def dispatch(self, request, *args, **kwargs):
+        message = self.get_object()
+        # Проверка прав на удаление сообщения
+        if message.owner != request.user and not request.user.is_superuser:
+            raise PermissionDenied("У вас нет прав для удаления этого сообщения.")
+        return super().dispatch(request, *args, **kwargs)
+
 
 
 # --- Вьюхи для настроек рассылок ---

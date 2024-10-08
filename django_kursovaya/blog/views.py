@@ -5,8 +5,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.utils.text import slugify
 from .models import BlogPost
 from .forms import BlogPostForm, BlogPostUpdateForm
-from .utils import get_blogpost_for_cache
-
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth.mixins import UserPassesTestMixin
 
 
 class BlogPostListView(ListView):
@@ -15,8 +15,15 @@ class BlogPostListView(ListView):
     template_name = 'blog/blog_list.html'
 
     def get_queryset(self):
-        # Прямая фильтрация по базе данных для отладки
         return BlogPost.objects.filter(is_published=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        # Добавляем переменные для проверки прав в шаблоне
+        context['is_manager'] = user.groups.filter(name='Manager').exists()
+        context['is_superuser'] = user.is_superuser
+        return context
 
 
 class BlogPostDetailView(DetailView):
@@ -45,12 +52,18 @@ class BlogPostCreateView(LoginRequiredMixin, CreateView):
 
 
 
-class BlogPostUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class BlogPostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """Обновление поста"""
     model = BlogPost
     form_class = BlogPostUpdateForm
-    permission_required = 'blog.change_blogpost'
     template_name = 'blog/blog_form.html'
+
+    def test_func(self):
+        # Проверка прав на редактирование
+        post = self.get_object()
+        user = self.request.user
+        # Пользователь может редактировать, если он автор, администратор или менеджер
+        return user == post.author or user.is_superuser or user.has_perm('blog.change_blogpost')
 
     def form_valid(self, form):
         form.instance.slug = slugify(form.instance.title)
@@ -59,10 +72,25 @@ class BlogPostUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
     def get_success_url(self):
         return reverse_lazy('blog:blog_detail', args=[self.kwargs.get('pk')])
 
-class BlogPostDeleteView(PermissionRequiredMixin, DeleteView):
+
+class BlogPostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """Удаление поста"""
     model = BlogPost
-    template_name = 'blog/blog_confirm_delete.html'  # Явно указываем правильное имя шаблона
+    template_name = 'blog/blog_confirm_delete.html'
     success_url = reverse_lazy('blog:blog_list')
-    permission_required = 'blog.delete_blogpost'
 
+    def test_func(self):
+        # Проверка прав на удаление
+        post = self.get_object()
+        user = self.request.user
+        # Пользователь может удалить, если он автор, администратор или менеджер
+        return user == post.author or user.is_superuser or user.has_perm('blog.delete_blogpost')
+
+    '''def dispatch(self, request, *args, **kwargs):
+        post = self.get_object()
+        # Проверка прав: автор поста, администратор или менеджер
+        if post.author != request.user and not (
+                request.user.is_superuser or request.user.has_perm('blog.delete_blogpost')):
+            raise PermissionDenied("У вас нет прав для удаления этого поста.")
+        return super().dispatch(request, *args, **kwargs)
+'''

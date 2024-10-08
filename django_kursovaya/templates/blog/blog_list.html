@@ -4,51 +4,53 @@
 
 {% block content %}
 <div class="container py-5">
-   <h1 class="text-center mb-4">Блог</h1>
+  <h1 class="text-center mb-4">Блог</h1>
 
-   <!-- Кнопка добавления записи для пользователей с правами -->
-   {% if perms.blog.add_blogpost %}
-   <div class="text-right mb-3">
-       <a href="{% url 'blog:blog_create' %}" class="btn btn-success">Добавить запись</a>
-   </div>
-   {% endif %}
+  <!-- Кнопка добавления записи для пользователей с правами -->
+  {% if perms.blog.add_blogpost %}
+  <div class="text-right mb-3">
+      <a href="{% url 'blog:blog_create' %}" class="btn btn-success">Добавить запись</a>
+  </div>
+  {% endif %}
 
-   <div class="row">
-       {% for post in object_list %}
-           <div class="col-md-4 mb-4">
-               <div class="card shadow-sm h-100">
-                   <!-- Превью поста, если доступно -->
-                   {% if post.preview %}
-                       <img src="{{ post.preview.url }}" class="card-img-top" alt="{{ post.title }}">
-                   {% endif %}
-                   <div class="card-body">
-                       <h5 class="card-title">{{ post.title }}</h5>
-                       <p class="card-text">{{ post.content|truncatewords:20 }}</p>
-                       <a href="{% url 'blog:blog_detail' post.pk %}" class="btn btn-primary">Читать далее</a>
+  <div class="row">
+      {% for post in object_list %}
+          <div class="col-md-4 mb-4">
+              <div class="card shadow-sm h-100">
+                  <!-- Превью поста, если доступно -->
+                  {% if post.preview %}
+                      <img src="{{ post.preview.url }}" class="card-img-top" alt="{{ post.title }}">
+                  {% endif %}
+                  <div class="card-body">
+                      <h5 class="card-title">{{ post.title }}</h5>
+                      <p class="card-text">{{ post.content|truncatewords:20 }}</p>
+                      <a href="{% url 'blog:blog_detail' post.pk %}" class="btn btn-primary">Читать далее</a>
 
-                       <!-- Статус публикации, если пост не опубликован -->
-                       {% if not post.is_published %}
-                       <p class="text-warning mt-3">Статья не опубликована</p>
-                       {% endif %}
-                   </div>
+                      <!-- Статус публикации, если пост не опубликован -->
+                      {% if not post.is_published %}
+                      <p class="text-warning mt-3">Статья не опубликована</p>
+                      {% endif %}
+                  </div>
 
-                   <div class="card-footer text-muted">
-                       Опубликовано: {{ post.created_at|date:"d.m.Y" }}
-                   </div>
+                  <div class="card-footer text-muted">
+                      Опубликовано: {{ post.created_at|date:"d.m.Y" }}
+                  </div>
 
-                   <!-- Кнопки для редактирования и удаления постов, если у пользователя есть права -->
-                   <div class="card-footer d-flex justify-content-between">
-                       {% if perms.blog.change_blogpost or user.id == post.author_id %}
-                       <a href="{% url 'blog:blog_update' post.pk %}" class="btn btn-outline-primary">Изменить</a>
-                       {% endif %}
+                  <!-- Кнопки для редактирования и удаления постов -->
+                  <div class="card-footer d-flex justify-content-between">
+                      <!-- Пользователь может изменить, если он автор, менеджер или суперпользователь -->
+                      {% if request.user == post.author or is_superuser or is_manager %}
+                      <a href="{% url 'blog:blog_update' post.pk %}" class="btn btn-outline-primary">Изменить</a>
+                      {% endif %}
 
-                       {% if perms.blog.delete_blogpost %}
-                       <a href="{% url 'blog:blog_delete' post.pk %}" class="btn btn-outline-danger">Удалить</a>
-                       {% endif %}
-                   </div>
-               </div>
-           </div>
-       {% endfor %}
-   </div>
+                      <!-- Пользователь может удалить, если он автор, менеджер или суперпользователь -->
+                      {% if request.user == post.author or is_superuser or is_manager %}
+                      <a href="{% url 'blog:blog_delete' post.pk %}" class="btn btn-outline-danger">Удалить</a>
+                      {% endif %}
+                  </div>
+              </div>
+          </div>
+      {% endfor %}
+  </div>
 </div>
 {% endblock %}
