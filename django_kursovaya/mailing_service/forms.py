@@ -6,7 +6,7 @@ from datetime import datetime
 class ClientForm(forms.ModelForm):
     class Meta:
         model = Client
-        fields = ['email', 'name', 'comments']
+        fields = ['email', 'name', 'comments', 'is_active']  # Добавляем поле is_active
 
 class MessageForm(forms.ModelForm):
     class Meta:

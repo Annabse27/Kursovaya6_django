@@ -5,8 +5,8 @@
 <div class="container mt-4">
   <h2>Список клиентов</h2>
 
-  <!-- Кнопка для добавления клиента доступна только суперпользователям -->
-  {% if user.is_superuser %}
+  <!-- Кнопка для добавления клиента доступна только суперпользователям и обычным пользователям (не менеджерам) -->
+  {% if user.is_superuser or is_client %}
   <a href="{% url 'mailing_service:create_client' %}" class="btn btn-success mb-3">Добавить клиента</a>
   {% endif %}
 
@@ -16,6 +16,7 @@
               <th>Email</th>
               <th>Имя</th>
               <th>Комментарии</th>
+              <th>Статус</th>
               <th>Действия</th>
           </tr>
       </thead>
@@ -25,6 +26,7 @@
               <td>{{ client.email }}</td>
               <td>{{ client.name }}</td>
               <td>{{ client.comments|truncatewords:10 }}</td>
+              <td>{% if client.is_active %}Активен{% else %}Неактивен{% endif %}</td>
               <td>
                   <!-- Кнопка "Просмотр" доступна всем -->
                   <a href="{% url 'mailing_service:view_client' client.pk %}" class="btn btn-info">Просмотр</a>

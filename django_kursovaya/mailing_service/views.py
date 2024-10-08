@@ -44,26 +44,18 @@ class ClientListView(LoginRequiredMixin, ListView):
     model = Client
     template_name = 'mailing_utils/client_list.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        # Проверка прав менеджера или суперпользователя
-        user = request.user
-        if user.is_superuser or user.groups.filter(name='Manager').exists():
-            return super().dispatch(request, *args, **kwargs)
-        else:
-            raise PermissionDenied("У вас нет прав для просмотра клиентов.")
-
     def get_queryset(self):
         user = self.request.user
-        # Разрешаем всем суперпользователям и менеджерам видеть всех клиентов
+        # Суперпользователи и менеджеры видят всех клиентов
         if user.is_superuser or user.groups.filter(name='Manager').exists():
             return Client.objects.all()
-        # Обычные пользователи могут видеть только своих клиентов
+        # Обычные пользователи видят только своих клиентов
         return Client.objects.filter(owner=user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Добавляем информацию о том, является ли пользователь менеджером
         context['is_manager'] = self.request.user.groups.filter(name='Manager').exists()
+        context['is_client'] = self.request.user.groups.filter(name='Client').exists()
         return context
 
 
@@ -74,7 +66,7 @@ class ClientDetailView(LoginRequiredMixin, DetailView):
     def get_object(self, queryset=None):
         user = self.request.user
         client = super().get_object(queryset)
-        # Если пользователь является суперпользователем или менеджером, он может видеть всех клиентов
+        # Суперпользователи и менеджеры могут видеть всех клиентов
         if user.is_superuser or user.groups.filter(name='Manager').exists():
             return client
         # Обычные пользователи могут видеть только своих клиентов
@@ -84,24 +76,25 @@ class ClientDetailView(LoginRequiredMixin, DetailView):
             raise PermissionDenied("У вас нет прав для просмотра этого клиента.")
 
 
-class ClientCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class ClientCreateView(LoginRequiredMixin, CreateView):
     model = Client
     form_class = ClientForm
-    permission_required = 'mailing.add_client'
     template_name = 'mailing_utils/client_form.html'
     success_url = reverse_lazy('mailing_service:clients')
 
-    def dispatch(self, request, *args, **kwargs):
-        user = request.user
-        # Проверяем, если пользователь суперпользователь или менеджер
-        if user.is_superuser or user.groups.filter(name='Manager').exists():
-            return super().dispatch(request, *args, **kwargs)
-        else:
-            raise PermissionDenied("У вас нет прав для создания клиентов.")
-
     def form_valid(self, form):
-        form.instance.owner = self.request.user
+        user = self.request.user
+        form.instance.owner = user
+        # Если пользователь не суперпользователь и не менеджер, создаем неактивного клиента
+        if not user.is_superuser and not user.groups.filter(name='Manager').exists():
+            form.instance.is_active = False
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_manager'] = self.request.user.groups.filter(name='Manager').exists()
+        context['is_client'] = self.request.user.groups.filter(name='Client').exists()
+        return context
 
 
 class ClientUpdateView(LoginRequiredMixin, UpdateView):
@@ -110,20 +103,30 @@ class ClientUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'mailing_utils/client_form.html'
     success_url = reverse_lazy('mailing_service:clients')
 
+    def dispatch(self, request, *args, **kwargs):
+        user = self.request.user
+        # Разрешаем редактировать только менеджерам и суперпользователям
+        if user.is_superuser or user.groups.filter(name='Manager').exists():
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            raise PermissionDenied("У вас нет прав для редактирования клиентов.")
+
+    def form_valid(self, form):
+        # Получаем оригинального владельца клиента перед обновлением
+        original_owner = form.instance.owner
+        form.instance.owner = original_owner  # Сохраняем оригинального владельца
+        return super().form_valid(form)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Добавляем флаг для отображения менеджера
         context['is_manager'] = self.request.user.groups.filter(name='Manager').exists()
         return context
 
     def get_object(self, queryset=None):
         user = self.request.user
         client = super().get_object(queryset)
-        # Если пользователь является суперпользователем или менеджером, они могут редактировать всех клиентов
+        # Разрешаем редактировать только менеджерам и суперпользователям
         if user.is_superuser or user.groups.filter(name='Manager').exists():
-            return client
-        # Обычные пользователи могут редактировать только своих клиентов
-        if client.owner == user:
             return client
         else:
             raise PermissionDenied("У вас нет прав для редактирования этого клиента.")
