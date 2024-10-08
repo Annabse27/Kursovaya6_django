@@ -191,6 +191,20 @@ class MailingSettingsUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Upd
    template_name = 'mailing_utils/mailing_form.html'
    success_url = reverse_lazy('mailing_service:settings')
 
+   def form_valid(self, form):
+       # Собираем данные о владельце и датах для сохранения
+       mailing = form.save(commit=False)
+       mailing.owner = self.request.user
+       mailing.start_datetime = form.cleaned_data['start_datetime']
+       mailing.end_datetime = form.cleaned_data['end_datetime']
+
+       # Сохраняем объект рассылки
+       mailing.save()
+
+       # Сохраняем ManyToMany данные (например, клиентов)
+       form.save_m2m()
+
+       return super().form_valid(form)
 
 
 class MailingSettingsDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
@@ -201,7 +215,7 @@ class MailingSettingsDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Del
 
 
 
-
+# --- Вьюха для попыток ---
 class MailingAttemptListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = MailingAttempt
     permission_required = 'mailing.view_mailingattempt'

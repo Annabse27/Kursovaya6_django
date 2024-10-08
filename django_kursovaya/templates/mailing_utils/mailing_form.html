@@ -47,4 +47,15 @@
        <a href="{% url 'mailing_service:settings' %}" class="btn btn-secondary">Отмена</a>
    </form>
 </div>
+
+{% if form.errors %}
+  <div class="alert alert-danger">
+    <ul>
+      {% for field, errors in form.errors.items %}
+        <li>{{ field }}: {{ errors|join:", " }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
 {% endblock %}
