@@ -290,7 +290,6 @@ class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
     template_name = 'mailing_utils/mailing_form.html'
     success_url = reverse_lazy('mailing_service:settings')
 
-
     def get_form(self, *args, **kwargs):
         form = super().get_form(*args, **kwargs)
         # Обычные пользователи видят только своих клиентов
@@ -304,6 +303,12 @@ class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
         form.instance.start_datetime = form.cleaned_data['start_datetime']
         form.instance.end_datetime = form.cleaned_data['end_datetime']
 
+        # Приводим start_datetime и end_datetime к одному типу (offset-aware)
+        if form.instance.start_datetime.tzinfo is None:
+            form.instance.start_datetime = timezone.make_aware(form.instance.start_datetime)
+        if form.instance.end_datetime.tzinfo is None:
+            form.instance.end_datetime = timezone.make_aware(form.instance.end_datetime)
+
         # Обычные пользователи могут создать рассылку только со статусом "Создана"
         if not self.request.user.is_superuser and not self.request.user.groups.filter(name='Manager').exists():
             form.instance.mailing_status = 'created'
@@ -313,7 +318,7 @@ class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
 
         # Проверяем дату и время после создания
         now = timezone.now()
-        mailing = self.object  # объект созданной рассылки
+        mailing = self.object
 
         if mailing.start_datetime <= now <= mailing.end_datetime:
             # Отправка писем клиентам, если текущее время между началом и окончанием рассылки
@@ -326,14 +331,12 @@ class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
                         from_email=from_email,
                         recipient_list=[client.email],
                     )
-                    # Записываем успешную попытку отправки
                     MailingAttempt.objects.create(
                         mailing=mailing,
                         attempt_status='success',
                         response_mail_server='Email sent successfully',
                     )
                 except Exception as e:
-                    # Записываем неудачную попытку
                     MailingAttempt.objects.create(
                         mailing=mailing,
                         attempt_status='failure',
@@ -341,7 +344,6 @@ class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
                     )
 
         return response
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -371,18 +373,22 @@ class MailingSettingsUpdateView(LoginRequiredMixin, UpdateView):
         mailing.start_datetime = form.cleaned_data['start_datetime']
         mailing.end_datetime = form.cleaned_data['end_datetime']
 
+        # Приводим start_datetime и end_datetime к одному типу (offset-aware)
+        if mailing.start_datetime.tzinfo is None:
+            mailing.start_datetime = timezone.make_aware(mailing.start_datetime)
+        if mailing.end_datetime.tzinfo is None:
+            mailing.end_datetime = timezone.make_aware(mailing.end_datetime)
+
         # Обычные пользователи не могут изменять статус рассылки, только менеджеры и суперпользователи
         if self.request.user.is_superuser or self.request.user.groups.filter(name='Manager').exists():
             mailing.mailing_status = form.cleaned_data['mailing_status']
         else:
-            # Обычные пользователи могут сохранять только свои рассылки в статусе "created"
             if mailing.mailing_status != 'created':
                 mailing.mailing_status = 'created'
 
         mailing.save()
         form.save_m2m()
         return super().form_valid(form)
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
