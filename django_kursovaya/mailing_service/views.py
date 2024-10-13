@@ -167,6 +167,13 @@ class MessageListView(LoginRequiredMixin, ListView):
             return Message.objects.all()
         return Message.objects.filter(owner=user)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        # Проверяем, является ли пользователь клиентом или администратором
+        context['is_client'] = user.groups.filter(name='Client').exists() or user.is_superuser
+        return context
+
 
 class MessageDetailView(LoginRequiredMixin, DetailView):
     model = Message

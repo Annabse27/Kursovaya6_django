@@ -6,9 +6,10 @@
     <h2>Текст для рассылок</h2>
 
     <!-- Кнопка "Создать новое сообщение" доступна только для пользователей с правом на добавление сообщений -->
-    {% if perms.mailing.add_message and not perms.mailing_manager %}
+    {% if is_client %}
         <a href="{% url 'mailing_service:create_message' %}" class="btn btn-success mb-3">Создать новое сообщение</a>
     {% endif %}
+
 
     <table class="table table-striped">
         <thead>
@@ -35,7 +36,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="3" class="text-center">Нет сообщений.</td>
+                <td colspan="3" class="text-center">Ваш профиль проверяется.</td>
             </tr>
             {% endfor %}
         </tbody>
