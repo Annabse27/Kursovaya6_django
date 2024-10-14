@@ -3,44 +3,48 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h2>Список рассылок</h2>
+    <h2>Список рассылок</h2>
 
-  <!-- Кнопка для добавления рассылки доступна только обычным пользователям и суперпользователям -->
-  {% if user.is_superuser or is_client %}
-  <a href="{% url 'mailing_service:create_setting' %}" class="btn btn-success mb-3">Добавить рассылку</a>
-  {% endif %}
+    <!-- Отладочный вывод -->
+    <p>Статус пользователя (is_client): {{ is_client }}</p>
+    <p>Количество рассылок: {{ object_list.count }}</p>
 
-  <div class="row row-cols-3 row-cols-sm-2 row-cols-md-3 g-3">
-      {% for mailing in object_list %}
-      <div class="col-4">
-          <div class="card shadow-sm">
-              <div class="card-body">
-                  <p class="card-text"><b>Рассылка #{{ mailing.id }}</b></p>
-                  <p class="card-text">Тема: {{ mailing.message }}</p>
-                  <p class="card-text">с {{ mailing.start_datetime }}</p>
-                  <p class="card-text">по {{ mailing.end_datetime }}</p>
-                  <p class="card-text">Периодичность: {{ mailing.periodicity }}</p>
-                  <p class="card-text">{{ mailing.get_mailing_status_display }}</p>
+    <!-- Кнопка для добавления рассылки доступна только обычным пользователям и суперпользователям -->
+    {% if user.is_superuser or is_client %}
+        <a href="{% url 'mailing_service:create_setting' %}" class="btn btn-success mb-3">Добавить рассылку</a>
+    {% endif %}
 
-                  <div class="d-flex justify-content-between align-items-center">
-                      <div class="btn-group">
-                          <a class="btn btn-outline-success" href="{% url 'mailing_service:view_setting' mailing.pk %}" role="button">Просмотр</a>
+    <div class="row row-cols-3 row-cols-sm-2 row-cols-md-3 g-3">
+        {% for mailing in object_list %}
+        <div class="col-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="card-text"><b>Рассылка #{{ mailing.id }}</b></p>
+                    <p class="card-text">Тема: {{ mailing.message }}</p>
+                    <p class="card-text">с {{ mailing.start_datetime }}</p>
+                    <p class="card-text">по {{ mailing.end_datetime }}</p>
+                    <p class="card-text">Периодичность: {{ mailing.periodicity }}</p>
+                    <p class="card-text">{{ mailing.get_mailing_status_display }}</p>
 
-                          <!-- Кнопка "Редактировать" доступна только для обычных пользователей и суперпользователей -->
-                          {% if user.is_superuser or is_client %}
-                              <a class="btn btn-outline-warning" href="{% url 'mailing_service:update_setting' mailing.pk %}" role="button">Редактировать</a>
-                          {% endif %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group">
+                            <a class="btn btn-outline-success" href="{% url 'mailing_service:view_setting' mailing.pk %}" role="button">Просмотр</a>
 
-                          <!-- Кнопка "Удалить" доступна только для суперпользователей и обычных пользователей (не менеджеров) -->
-                          {% if user.is_superuser or is_client %}
-                              <a class="btn btn-outline-danger" href="{% url 'mailing_service:delete_setting' mailing.pk %}" role="button">Удалить</a>
-                          {% endif %}
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-      {% endfor %}
-  </div>
+                            <!-- Кнопка "Редактировать" доступна только для обычных пользователей и суперпользователей -->
+                            {% if user.is_superuser or is_client %}
+                                <a class="btn btn-outline-warning" href="{% url 'mailing_service:update_setting' mailing.pk %}" role="button">Редактировать</a>
+                            {% endif %}
+
+                            <!-- Кнопка "Удалить" доступна только для суперпользователей и обычных пользователей (не менеджеров) -->
+                            {% if user.is_superuser or is_client %}
+                                <a class="btn btn-outline-danger" href="{% url 'mailing_service:delete_setting' mailing.pk %}" role="button">Удалить</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

@@ -247,8 +247,8 @@ class MailingSettingsListView(LoginRequiredMixin, ListView):
         # Менеджеры и суперпользователи видят все рассылки
         if user.is_superuser or user.groups.filter(name='Manager').exists():
             return MailingSettings.objects.all()
-        # Обычные пользователи видят только свои рассылки
-        return MailingSettings.objects.filter(owner=user)
+        # Обычные пользователи видят только свои рассылки, независимо от статуса
+        return MailingSettings.objects.filter(owner=user)  # Убираем проверку на статус
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -376,7 +376,13 @@ class MailingSettingsUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         mailing = form.save(commit=False)
-        mailing.owner = self.request.user
+        print(f'Перед изменением: Статус: {mailing.mailing_status}, Владелец: {mailing.owner}')  # Отладочный вывод
+
+        #mailing.owner = self.request.user
+        # Не изменяем владельца, если он уже установлен
+        if not mailing.owner:
+            mailing.owner = self.request.user
+
         mailing.start_datetime = form.cleaned_data['start_datetime']
         mailing.end_datetime = form.cleaned_data['end_datetime']
 
@@ -395,6 +401,7 @@ class MailingSettingsUpdateView(LoginRequiredMixin, UpdateView):
 
         mailing.save()
         form.save_m2m()
+        print(f'После изменения: Статус: {mailing.mailing_status}, Владелец: {mailing.owner}')  # Отладочный вывод
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
