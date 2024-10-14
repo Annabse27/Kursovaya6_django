@@ -301,8 +301,12 @@ class MailingSettingsCreateView(LoginRequiredMixin, CreateView):
         form = super().get_form(*args, **kwargs)
         # Обычные пользователи видят только своих клиентов
         if not self.request.user.is_superuser:
-            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user)
+            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user, is_active=True)
             form.fields['message'].queryset = Message.objects.filter(owner=self.request.user)
+        else:
+            # Администраторы видят всех активных клиентов
+            form.fields['clients'].queryset = Client.objects.filter(is_active=True)
+
         return form
 
     def form_valid(self, form):
@@ -370,8 +374,11 @@ class MailingSettingsUpdateView(LoginRequiredMixin, UpdateView):
         form = super().get_form(*args, **kwargs)
         # Обычные пользователи видят только своих клиентов
         if not self.request.user.is_superuser:
-            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user)
+            form.fields['clients'].queryset = Client.objects.filter(owner=self.request.user, is_active=True)
             form.fields['message'].queryset = Message.objects.filter(owner=self.request.user)
+        else:
+            # Администраторы видят всех активных клиентов
+            form.fields['clients'].queryset = Client.objects.filter(is_active=True)
         return form
 
     def form_valid(self, form):
